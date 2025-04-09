@@ -6,15 +6,20 @@
 //
 
 import SwiftUI
+import Firebase
+
+
 
 @main
 struct Hydrate_App: App {
-    let persistenceController = PersistenceController.shared
-
+    @StateObject var viewModel = AuthViewModel()
+    init(){
+        FirebaseApp.configure()
+    }
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            LoginView()
+                .environmentObject(viewModel)
         }
     }
 }
