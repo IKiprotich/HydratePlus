@@ -12,10 +12,24 @@ struct RegistrationView: View {
     @State private var fullname = ""
     @State private var password = ""
     @State private var confirmpassword = ""
+    @State private var phoneNumber = ""
+    @State private var selectedAuthMethod = AuthMethod.email
+    @State private var showingPhoneVerification = false
+    
+    
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: AuthViewModel
+    
+    
+    enum AuthMethod{
+        case email
+        case phone
+    }
+    
+    
     var body: some View {
         VStack{
+            //App logo
             Image("Hydrate+")
                 .resizable()
                 .scaledToFill()
