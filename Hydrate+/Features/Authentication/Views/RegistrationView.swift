@@ -29,12 +29,105 @@ struct RegistrationView: View {
     
     var body: some View {
         VStack{
+            
             //App logo
             Image("Hydrate+")
                 .resizable()
                 .scaledToFill()
                 .frame(width: 100, height: 120)
                 .padding(.vertical, 32)
+                .shadow(color: Color.waterBlue.opacity(0.5), radius: 10)
+            
+            
+            //Authentication Method toggle
+            Picker("Authentication Method", selection: $selectedAuthMethod) {
+                Text("Email").tag(AuthMethod.email)
+                Text("Phone").tag(AuthMethod.phone)
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.horizontal, 24)
+            .padding(.bottom, 12)
+            
+            
+            //Input fields based on the selected auth method
+            if selectedAuthMethod == .email{
+                emailRegistrationForm
+            }
+            else{
+                phoneNumberRegistrationForm
+            }
+            
+            //Sign Up Button
+            Button {
+                if selectedAuthMethod == .email {
+                    Task {
+                        try await viewModel.createUser(withEmail: email,
+                                                       password: password,
+                                                       fullname: fullname)
+                    }
+                }
+                
+                else {
+                    showingPhoneVerification = true //this implements the phone verification logic in the authviewmodel
+                }
+            } label: {
+                HStack{
+                    Text("Sign Up")
+                        .fontWeight(.semibold)
+                    Image(systemName: "arrow.right")
+                }
+                .foregroundColor(.white)
+                .frame(width: UIScreen.main.bounds.width - 32, height: 48)
+            }
+            .background(Color.waterBlue)
+            .disabled(!formIsValid)
+            .opacity(.formIsValid ? 1.0 : 0.5)
+            .cornerRadius(8.0)
+            .padding(.top, 12)
+            
+            
+            //Or Sign up with text
+            Text("Or sign up with")
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .padding(.top, 16)
+            
+            
+            //Social Sign In buttons
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
             
             
             VStack(spacing: 24){
