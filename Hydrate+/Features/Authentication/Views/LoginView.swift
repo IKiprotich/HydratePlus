@@ -195,7 +195,8 @@ struct LoginView: View {
             InputView(text:$email,
                       Title: "Email Address",
                       placeholder: "name@example.com",
-                      isSecureField: false)
+                      isSecureField: false,
+                      iconName: "envelope.fill")
             .modifier(InputViewModifier())
                       
             InputView(text:$password,
