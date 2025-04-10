@@ -8,6 +8,8 @@ import Foundation
 import FirebaseAuth
 import FirebaseFirestore
 import AuthenticationServices
+import FirebaseCore
+import GoogleSignIn
 
 
 protocol AuthenticationFormProtocol {

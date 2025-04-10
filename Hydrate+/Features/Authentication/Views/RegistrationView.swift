@@ -54,7 +54,7 @@ struct RegistrationView: View {
                 emailRegistrationForm
             }
             else{
-                phoneNumberRegistrationForm
+                phoneRegistrationForm
             }
             
             //Sign Up Button
@@ -81,7 +81,7 @@ struct RegistrationView: View {
             }
             .background(Color.waterBlue)
             .disabled(!formIsValid)
-            .opacity(.formIsValid ? 1.0 : 0.5)
+            .opacity(!formIsValid ? 1.0 : 0.5)
             .cornerRadius(8.0)
             .padding(.top, 12)
             
@@ -248,10 +248,10 @@ struct RegistrationView: View {
 struct InputViewModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .background(RoundedRectangle(cornerRadius: 10)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
                 .fill(Color.white)
-                .shadowcolor: (color.waterBlue.opacity(0.1), radius: 5, x: 0, y: 2)
-            )
+                .shadow(color: Color.waterBlue.opacity(0.1), radius: 5, x: 0, y: 2))
     }
 }
             
@@ -279,7 +279,7 @@ extension RegistrationView: AuthenticationFormProtocol{
 //MARK: - Phone Verification View
 struct PhoneVerificationView: View {
     let phoneNumber: String
-    @State private var VerificationCode = ""
+    @State private var verificationCode = ""
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
