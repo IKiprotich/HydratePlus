@@ -30,7 +30,7 @@ struct RegistrationView: View {
     var body: some View {
         VStack{
             
-            //App logo
+//App logo
             Image("Hydrate+")
                 .resizable()
                 .scaledToFill()
@@ -39,7 +39,7 @@ struct RegistrationView: View {
                 .shadow(color: Color.waterBlue.opacity(0.5), radius: 10)
             
             
-            //Authentication Method toggle
+//Authentication Method toggle
             Picker("Authentication Method", selection: $selectedAuthMethod) {
                 Text("Email").tag(AuthMethod.email)
                 Text("Phone").tag(AuthMethod.phone)
@@ -49,7 +49,7 @@ struct RegistrationView: View {
             .padding(.bottom, 12)
             
             
-            //Input fields based on the selected auth method
+//Input fields based on the selected auth method
             if selectedAuthMethod == .email{
                 emailRegistrationForm
             }
@@ -57,7 +57,7 @@ struct RegistrationView: View {
                 phoneRegistrationForm
             }
             
-            //Sign Up Button
+//Sign Up Button
             Button {
                 if selectedAuthMethod == .email {
                     Task {
@@ -86,18 +86,18 @@ struct RegistrationView: View {
             .padding(.top, 12)
             
             
-            //Or Sign up with text
+//Or Sign up with text
             Text("Or sign up with")
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .padding(.top, 16)
             
             
-            //Social Sign In buttons row
+//Social Sign In buttons row
             HStack(spacing:24){
                 
                 
-                //Google button
+//Google button
                 Button{
                     Task{//it should implement google authentication
                         try await viewModel.signInWithGoogle()
@@ -120,14 +120,14 @@ struct RegistrationView: View {
                     .overlay( RoundedRectangle(cornerRadius:8).stroke(Color.gray.opacity(0.3), lineWidth: 1))
                 }
                 
-                //Apple Button
+//Apple Button
                 Button{
                     Task{//it should implement google authentication
                         try await viewModel.signInWithApple()
                     }
                 } label: {
                     HStack{
-                        Image("apple_logo")
+                        Image("Apple_logo")
                             .resizable()
                             .scaledToFit()
                             .frame(width:20, height: 20)
@@ -146,7 +146,7 @@ struct RegistrationView: View {
             
             Spacer()
             
-            //Link to the sign in view
+//Link to the sign in view
             Button {
                 dismiss()
             }
@@ -174,7 +174,8 @@ struct RegistrationView: View {
         }
     }
     
-    //Email registration Form
+    
+//Email registration Form
     private var emailRegistrationForm: some View {
         VStack(spacing: 24){
             InputView(text: $email,
@@ -223,7 +224,8 @@ struct RegistrationView: View {
         .padding(.horizontal)
     }
     
-    //Phone Registration form
+    
+//Phone Registration form
     private var phoneRegistrationForm: some View {
         VStack(spacing: 20) {
             InputView(text: $phoneNumber,
