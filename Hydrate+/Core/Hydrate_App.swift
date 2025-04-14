@@ -12,14 +12,14 @@ import Firebase
 
 @main
 struct Hydrate_App: App {
-    @StateObject var viewModel = AuthViewModel()
+    @StateObject var authViewModel = AuthViewModel()
     init(){
         FirebaseApp.configure()
     }
     var body: some Scene {
         WindowGroup {
-            LoginView()
-                .environmentObject(viewModel)
+            ContentView()
+                .environmentObject(authViewModel)
         }
     }
 }

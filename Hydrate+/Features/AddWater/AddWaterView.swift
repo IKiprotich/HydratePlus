@@ -168,5 +168,5 @@ struct WaterTypeButton: View {
 }
 
 #Preview {
-    AddWaterView()
+    AddWaterView(waterConsumed: .constant(1250))
 }
