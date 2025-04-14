@@ -18,17 +18,17 @@ struct MainTabView: View {
                 }
                 .tag(0)
             
-            StatisticsView()
-                .tabItem {
-                    Label("Statistics", systemImage: "chart.bar.fill")
-                }
-                .tag(1)
+            HistoryView()
+                           .tabItem {
+                               Label("History", systemImage: "calendar")
+                           }
+                           .tag(1)
             
-            ReminderView()
-                .tabItem {
-                    Label("Reminders", systemImage: "bell.fill")
-                }
-                .tag(2)
+            LeaderboardView()
+                           .tabItem {
+                               Label("Leaderboard", systemImage: "trophy.fill")
+                           }
+                           .tag(2)
             
             ProfileView()
                 .tabItem {
@@ -51,4 +51,5 @@ struct MainTabView: View {
 
 #Preview {
     MainTabView()
+        .environmentObject(AuthViewModel())
 }
