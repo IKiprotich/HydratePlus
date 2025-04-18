@@ -20,6 +20,7 @@ protocol AuthenticationFormProtocol {
 class AuthViewModel: ObservableObject{
     @Published var userSession: FirebaseAuth.User?
     @Published var currentUser: User?
+    @Published var errorMessage: String?
     
     init(){
         self.userSession = Auth.auth().currentUser
@@ -103,38 +104,33 @@ class AuthViewModel: ObservableObject{
     
     //sign in with google
     func signInWithGoogle() async throws {
-        // This is a simplified implementation that i'll to be expanded
-        guard let clientID = FirebaseApp.app()?.options.clientID else { return }
-        
-        // Create Google Sign In configuration object
-        let config = GIDConfiguration(clientID: clientID)
-        GIDSignIn.sharedInstance.configuration = config
-        
-        // Start the sign in flow
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else {
-            throw NSError(domain: "Google sign in failed", code: -1)
+            throw NSError(domain: "Google sign-in failed", code: -1, userInfo: [NSLocalizedDescriptionKey: "No root view controller available"])
         }
-        
+
         do {
+            // Start the Google Sign-In flow
             let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
             
             guard let idToken = result.user.idToken?.tokenString else {
-                throw NSError(domain: "Failed to get ID token", code: -1)
+                throw NSError(domain: "Google sign-in failed", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get ID token"])
             }
-            
+
             let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: result.user.accessToken.tokenString)
             
+            // Sign in with Firebase
             let authResult = try await Auth.auth().signIn(with: credential)
             self.userSession = authResult.user
-            
-            // Create user document if it doesn't exist
-            let fullname = result.user.profile?.name ?? ""
+
+            // Create or update user document in Firestore
+            let fullname = result.user.profile?.name ?? "Unknown"
             let email = result.user.profile?.email ?? ""
-            
             let user = User(id: authResult.user.uid, fullname: fullname, email: email)
+            
             let encodedUser = try Firestore.Encoder().encode(user)
             try await Firestore.firestore().collection("users").document(user.id).setData(encodedUser, merge: true)
+            
             await fetchUser()
         } catch {
             print("DEBUG: Failed to sign in with Google: \(error.localizedDescription)")
