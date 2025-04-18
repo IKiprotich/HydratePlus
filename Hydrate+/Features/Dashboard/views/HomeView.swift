@@ -8,69 +8,121 @@
 import SwiftUI
 
 struct HomeView: View {
-    @State private var waterConsumed: Double = 0
+    @State private var waterConsumed: Double = 1200
     @State private var dailyGoal: Double = 2000
     @State private var showingAddWaterSheet = false
-
+    @State private var animateWave = false
+    
+    // Sample data
+    private let streak = 7
+    private let dailyAverage = "1.8L"
+    
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Water progress card
-                    WaterProgressCard(waterConsumed: waterConsumed, dailyGoal: dailyGoal) {
-                        showingAddWaterSheet = true
-                    }
-
-                    // Recent water log
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Today's Water Log")
-                            .font(.headline)
-                            .foregroundColor(Color.waterBlue)
+            ZStack {
+                // Background gradient
+                backgroundGradient
+                
+                // Main content
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Header with greeting
+                        GreetingHeader(name: nil)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 12)
+                        
+                        // Water progress card
+                        WaterProgressCard(
+                            waterConsumed: waterConsumed,
+                            dailyGoal: dailyGoal,
+                            onAddWaterTap: {
+                                withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                                    showingAddWaterSheet = true
+                                }
+                            }
+                        )
+                        .padding(.horizontal)
+                        
+                        // Stats cards
+                        StatsSection(streak: streak, dailyAverage: dailyAverage)
                             .padding(.horizontal)
-
-                        ForEach(getSampleWaterLogs(), id: \.id) { log in
-                            WaterLogItem(log: log)
-                        }
-
-                        Button {
-                            // Navigate to detailed logs view
-                        } label: {
-                            Text("View All Logs")
-                                .font(.subheadline)
-                                .foregroundColor(Color.waterBlue)
-                                .padding(.vertical, 8)
-                                .frame(maxWidth: .infinity)
-                                .background(Color.waterBlue.opacity(0.1))
-                                .cornerRadius(8)
-                        }
+                        
+                        // Water log section
+                        WaterLogSection(
+                            logs: SampleData.getSampleWaterLogs(), // Fixed: Added SampleData prefix
+                            onViewAll: {
+                                // Navigate to logs view
+                            },
+                            onAddAmount: { amount in
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                    waterConsumed = min(waterConsumed + Double(amount), dailyGoal * 1.5)
+                                }
+                            }
+                        )
                         .padding(.horizontal)
                     }
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 32)
                 }
+                .scrollIndicators(.hidden)
             }
-            .navigationTitle("Hydrate+")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Hydrate+")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.deepBlue)
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         // Open settings
                     } label: {
                         Image(systemName: "gearshape.fill")
-                            .foregroundColor(Color.waterBlue)
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color.deepBlue)
+                            .padding(8)
+                            .background(Color.lightBlue.opacity(0.5))
+                            .clipShape(Circle())
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        // Open profile
+                    } label: {
+                        Image(systemName: "person.crop.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color.deepBlue)
+                            .padding(8)
+                            .background(Color.lightBlue.opacity(0.5))
+                            .clipShape(Circle())
                     }
                 }
             }
             .sheet(isPresented: $showingAddWaterSheet) {
                 AddWaterView(waterConsumed: $waterConsumed)
             }
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [.white, Color.lightBlue.opacity(0.2)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .edgesIgnoringSafeArea(.all)
-            )
         }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                animateWave = true
+            }
+        }
+    }
+    
+    // MARK: - UI Components
+    
+    private var backgroundGradient: some View {
+        LinearGradient(
+            gradient: Gradient(colors: [
+                Color.lightBlue.opacity(0.3),
+                .white,
+                Color.lightBlue.opacity(0.2)
+            ]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
     }
 }
 

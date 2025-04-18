@@ -10,163 +10,150 @@ import SwiftUI
 struct AddWaterView: View {
     @Binding var waterConsumed: Double
     @Environment(\.dismiss) private var dismiss
+    
     @State private var selectedAmount: Double = 250
     @State private var customAmount: String = ""
-    @State private var isCustom: Bool = false
+    @State private var isCustomAmount: Bool = false
     
-    let presetAmounts: [Double] = [100, 250, 500, 750, 1000]
+    private let presetAmounts: [Double] = [100, 250, 330, 500, 750, 1000]
+    
+    // Computed properties to simplify complex expressions
+    private var amountToAdd: Double {
+        isCustomAmount ? (Double(customAmount) ?? 0) : selectedAmount
+    }
+    
+    private var isAddButtonDisabled: Bool {
+        isCustomAmount && (Double(customAmount) ?? 0) <= 0
+    }
+    
+    private var addButtonOpacity: Double {
+        isAddButtonDisabled ? 0.5 : 1.0
+    }
+    
+    private var addButtonText: String {
+        "Add \(Int(amountToAdd))ml"
+    }
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                // Water drop image
-                Image(systemName: "drop.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 60, height: 60)
-                    .foregroundColor(Color.waterBlue)
-                    .padding()
+                // Title
+                Text("Add Water")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.deepBlue)
                 
-                // Preset amounts
-                Text("Select Amount (ml)")
-                    .font(.headline)
-                    .foregroundColor(Color.waterBlue)
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(presetAmounts, id: \.self) { amount in
-                            Button {
-                                selectedAmount = amount
-                                isCustom = false
-                            } label: {
-                                Text("\(Int(amount))")
-                                    .font(.headline)
-                                    .foregroundColor(selectedAmount == amount && !isCustom ? .white : Color.waterBlue)
-                                    .frame(width: 70, height: 70)
-                                    .background(
-                                        Circle()
-                                            .fill(selectedAmount == amount && !isCustom ? Color.waterBlue : Color.waterBlue.opacity(0.1))
-                                    )
-                            }
-                        }
-                        
-                        // Custom amount button
-                        Button {
-                            isCustom = true
-                        } label: {
-                            Image(systemName: "plus")
-                                .font(.headline)
-                                .foregroundColor(isCustom ? .white : Color.waterBlue)
-                                .frame(width: 70, height: 70)
-                                .background(
-                                    Circle()
-                                        .fill(isCustom ? Color.waterBlue : Color.waterBlue.opacity(0.1))
-                                )
-                        }
+                // Amount selection
+                VStack(spacing: 16) {
+                    // Preset amounts
+                    if !isCustomAmount {
+                        presetAmountsView
                     }
-                    .padding(.horizontal)
-                }
-                
-                // Custom amount input
-                if isCustom {
-                    HStack {
-                        TextField("Enter amount", text: $customAmount)
-                            .keyboardType(.numberPad)
-                            .font(.headline)
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                        
-                        Text("ml")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
+                    
+                    // Custom amount
+                    if isCustomAmount {
+                        customAmountView
                     }
-                    .padding(.horizontal)
-                }
-                
-                // Water type selection
-                Text("Water Type")
-                    .font(.headline)
-                    .foregroundColor(Color.waterBlue)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                
-                HStack(spacing: 16) {
-                    WaterTypeButton(icon: "drop.fill", label: "Water", isSelected: true)
-                    WaterTypeButton(icon: "mug.fill", label: "Coffee", isSelected: false)
-                    WaterTypeButton(icon: "leaf.fill", label: "Tea", isSelected: false)
+                    
+                    // Toggle between preset and custom
+                    toggleButton
                 }
                 
                 Spacer()
                 
-                // Add water button
+                // Add button - simplified by using computed properties
                 Button {
-                    let amountToAdd = isCustom ? (Double(customAmount) ?? 0) : selectedAmount
-                    waterConsumed += amountToAdd
+                    if amountToAdd > 0 {
+                        waterConsumed += amountToAdd
+                    }
                     dismiss()
                 } label: {
-                    Text("Add \(isCustom ? (customAmount.isEmpty ? "0" : customAmount) : "\(Int(selectedAmount))") ml")
-                        .font(.headline)
-                        .foregroundColor(.white)
+                    Text(addButtonText)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(height: 56)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.waterBlue)
-                        .cornerRadius(16)
-                        .shadow(color: Color.waterBlue.opacity(0.4), radius: 5, x: 0, y: 3)
+                        .background(Color.blue)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
-                .padding(.horizontal)
-                .disabled(isCustom && (customAmount.isEmpty || Double(customAmount) == 0))
-                .opacity(isCustom && (customAmount.isEmpty || Double(customAmount) == 0) ? 0.5 : 1)
+                .disabled(isAddButtonDisabled)
+                .opacity(addButtonOpacity)
             }
-            .padding(.top)
-            .navigationTitle("Add Water")
-            .navigationBarTitleDisplayMode(.inline)
+            .padding(24)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         dismiss()
                     } label: {
-                        Text("Cancel")
-                            .foregroundColor(Color.waterBlue)
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.gray)
                     }
                 }
             }
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [.white, Color.lightBlue.opacity(0.2)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .edgesIgnoringSafeArea(.all)
-            )
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
+    }
+    
+    // MARK: - Extracted Views
+    
+    private var presetAmountsView: some View {
+        VStack(spacing: 12) {
+            Text("Select Amount")
+                .font(.headline)
+                .foregroundStyle(Color.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                ForEach(presetAmounts, id: \.self) { amount in
+                    presetAmountButton(amount)
+                }
+            }
         }
     }
-}
-
-struct WaterTypeButton: View {
-    let icon: String
-    let label: String
-    let isSelected: Bool
     
-    var body: some View {
-        VStack {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(isSelected ? .white : Color.waterBlue)
-                .frame(width: 60, height: 60)
-                .background(
-                    Circle()
-                        .fill(isSelected ? Color.waterBlue : Color.waterBlue.opacity(0.1))
-                )
+    private func presetAmountButton(_ amount: Double) -> some View {
+        Button {
+            selectedAmount = amount
+        } label: {
+            Text("\(Int(amount))ml")
+                .font(.system(size: 16, weight: .medium))
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+                .background(selectedAmount == amount ? Color.blue : Color.gray.opacity(0.1))
+                .foregroundStyle(selectedAmount == amount ? .white : .primary)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+    
+    private var customAmountView: some View {
+        VStack(spacing: 12) {
+            Text("Enter Custom Amount")
+                .font(.headline)
+                .foregroundStyle(Color.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             
-            Text(label)
-                .font(.caption)
-                .foregroundColor(isSelected ? Color.waterBlue : .secondary)
+            TextField("Amount in ml", text: $customAmount)
+                .keyboardType(.numberPad)
+                .font(.system(size: 18, weight: .medium))
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+    
+    private var toggleButton: some View {
+        Button {
+            isCustomAmount.toggle()
+        } label: {
+            Text(isCustomAmount ? "Use Preset Amounts" : "Enter Custom Amount")
+                .font(.subheadline)
+                .foregroundStyle(Color.blue)
         }
     }
 }
 
 #Preview {
-    AddWaterView(waterConsumed: .constant(1250))
+    @State var waterConsumed: Double = 1000
+    return AddWaterView(waterConsumed: $waterConsumed)
 }
