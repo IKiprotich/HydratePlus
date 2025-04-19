@@ -25,6 +25,6 @@ struct GreetingHeader: View {
 }
 
 #Preview {
-    GreetingHeader(name: "Sarah")
+    GreetingHeader(name: "Kanye")
         .padding()
 }

@@ -13,7 +13,10 @@ import GoogleSignIn
 
 
 protocol AuthenticationFormProtocol {
+    
     var formIsValid: Bool {get}
+    
+    
 }
 
 @MainActor
