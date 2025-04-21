@@ -63,6 +63,45 @@ class AuthViewModel: ObservableObject{
         
     }
     
+    //create user in firestore
+    func createUserInFirestore(uid: String, fullname: String, email: String) {
+        let user = User(id: uid, fullname: fullname, email: email)
+        let db = Firestore.firestore()
+
+        do {
+            try db.collection("users").document(uid).setData(from: user)
+        } catch {
+            print("Error writing user to Firestore: \(error)")
+        }
+    }
+
+    
+    //saving user info to firestore
+    func saveUserToFirestore(uid: String, name: String, email: String) {
+        let db = Firestore.firestore()
+        db.collection("users").document(uid).setData([
+            "name": name,
+            "email": email,
+            "createdAt": Timestamp()
+        ]) { error in
+            if let error = error {
+                print("Error writing user to Firestore: \(error.localizedDescription)")
+            } else {
+                print("User data successfully written!")
+            }
+        }
+    }
+    
+    //fetching user
+    func fetchUser()async{
+        guard let uid = Auth.auth().currentUser?.uid else{return}
+        
+        guard let snapshot = try? await Firestore.firestore().collection("users").document(uid).getDocument() else{return}
+        self.currentUser = try? snapshot.data(as:User.self)
+        
+        print("DEBUG: Current user is \(self.currentUser)")
+    }
+    
     
     //sign in using phone number
     func signInWithPhoneNumber(phoneNumber: String) {
@@ -163,15 +202,16 @@ class AuthViewModel: ObservableObject{
             print("DEBUG: failed to sing out the user")
         }
     }
+    
+    
+    
+    //realtime updates
+    
+
+    
+    //deleting user
     func deleteAccount(){
         
     }
-    func fetchUser()async{
-        guard let uid = Auth.auth().currentUser?.uid else{return}
-        
-        guard let snapshot = try? await Firestore.firestore().collection("users").document(uid).getDocument() else{return}
-        self.currentUser = try? snapshot.data(as:User.self)
-        
-        print("DEBUG: Current user is \(self.currentUser)")
-    }
+   
 }
