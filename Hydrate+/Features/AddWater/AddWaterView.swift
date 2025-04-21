@@ -10,6 +10,7 @@ import SwiftUI
 struct AddWaterView: View {
     @Binding var waterConsumed: Double
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject var viewModel: WaterViewModel
     
     @State private var selectedAmount: Double = 250
     @State private var customAmount: String = ""
@@ -64,6 +65,7 @@ struct AddWaterView: View {
                 Button {
                     if amountToAdd > 0 {
                         waterConsumed += amountToAdd
+                        viewModel.logWater(amount: amountToAdd)
                     }
                     dismiss()
                 } label: {
@@ -77,6 +79,7 @@ struct AddWaterView: View {
                 }
                 .disabled(isAddButtonDisabled)
                 .opacity(addButtonOpacity)
+
             }
             .padding(24)
             .toolbar {
@@ -154,6 +157,6 @@ struct AddWaterView: View {
 }
 
 #Preview {
-    @State var waterConsumed: Double = 1000
-    return AddWaterView(waterConsumed: $waterConsumed)
+    AddWaterView(waterConsumed: .constant(1000), viewModel: WaterViewModel(userID: "UserID"))
 }
+

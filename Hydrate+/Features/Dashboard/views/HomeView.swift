@@ -5,36 +5,76 @@
 //  Created by Ian   on 11/04/2025.
 //
 
+//
+//  HomeView.swift
+//  Hydrate+
+//
+//  Created by Ian   on 11/04/2025.
+//
+
 import SwiftUI
+import FirebaseAuth
+import Foundation
+
+// a custom scroll view wrapper to avoid ambiguity
+struct CustomScrollView<Content: View>: View {
+    let content: Content
+    
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+    
+    var body: some View {
+        SwiftUI.ScrollView {
+            content
+        }
+        .scrollIndicators(.hidden)
+    }
+}
+
+// Custom Task wrapper to avoid ambiguity
+func executeTask<T>(priority: TaskPriority? = nil, operation: @escaping () async -> T) {
+    Task(priority: priority) {
+        await operation()
+    }
+}
 
 struct HomeView: View {
-    @State private var waterConsumed: Double = 1200
-    @State private var dailyGoal: Double = 2000
+    @StateObject private var waterViewModel: WaterViewModel
     @State private var showingAddWaterSheet = false
     @State private var animateWave = false
-    
-    // Sample data
-    private let streak = 7
-    private let dailyAverage = "1.8L"
-    
+    @ObservedObject var viewModel: WaterViewModel
+    @State private var waterConsumed: Double = 0
+    @StateObject private var userVM = UserViewModel()
+
+
+    init() {
+        // Get the current authenticated user's ID
+        let userID = Auth.auth().currentUser?.uid ?? ""
+        _waterViewModel = StateObject(wrappedValue: WaterViewModel(userID: userID))
+        self.viewModel = WaterViewModel(userID: "")
+
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
                 // Background gradient
                 backgroundGradient
-                
+
                 // Main content
-                ScrollView {
+                CustomScrollView {
                     VStack(spacing: 24) {
                         // Header with greeting
-                        GreetingHeader(name: nil)
+                        let user = userVM.user
+                        GreetingHeader(name: user?.fullname) // You can replace with the actual user's name
                             .padding(.horizontal, 20)
                             .padding(.top, 12)
-                        
+
                         // Water progress card
                         WaterProgressCard(
-                            waterConsumed: waterConsumed,
-                            dailyGoal: dailyGoal,
+                            waterConsumed: waterViewModel.totalConsumed,
+                            dailyGoal: 2000, // Set dynamic daily goal if needed
                             onAddWaterTap: {
                                 withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                                     showingAddWaterSheet = true
@@ -42,20 +82,22 @@ struct HomeView: View {
                             }
                         )
                         .padding(.horizontal)
-                        
-                        // Stats cards
-                        StatsSection(streak: streak, dailyAverage: dailyAverage)
+
+                        // Stats cards (use data from `waterViewModel`)
+                        StatsSection(streak: 0, dailyAverage: "0")
                             .padding(.horizontal)
-                        
-                        // Water log section
+
+                        // Water log section (use real logs)
                         WaterLogSection(
-                            logs: SampleData.getSampleWaterLogs(), // Fixed: Added SampleData prefix
+                            logs: waterViewModel.waterLogs,
                             onViewAll: {
-                                // Navigate to logs view
+                                // Navigate to logs view if needed
                             },
                             onAddAmount: { amount in
                                 withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                                    waterConsumed = min(waterConsumed + Double(amount), dailyGoal * 1.5)
+                                    executeTask {
+                                        await waterViewModel.addWater(amount: Double(amount))
+                                    }
                                 }
                             }
                         )
@@ -63,17 +105,29 @@ struct HomeView: View {
                     }
                     .padding(.bottom, 32)
                 }
-                .scrollIndicators(.hidden)
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
+            .safeAreaInset(edge: .top) {
+                HStack {
+                    Button {
+                        // Open profile
+                    } label: {
+                        Image(systemName: "person.crop.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color.deepBlue)
+                            .padding(8)
+                            .background(Color.lightBlue.opacity(0.5))
+                            .clipShape(Circle())
+                    }
+                    
+                    Spacer()
+                    
                     Text("Hydrate+")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.deepBlue)
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
+                    
+                    Spacer()
+                    
                     Button {
                         // Open settings
                     } label: {
@@ -85,33 +139,27 @@ struct HomeView: View {
                             .clipShape(Circle())
                     }
                 }
-                
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        // Open profile
-                    } label: {
-                        Image(systemName: "person.crop.circle.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(Color.deepBlue)
-                            .padding(8)
-                            .background(Color.lightBlue.opacity(0.5))
-                            .clipShape(Circle())
-                    }
-                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .background(Color.white.opacity(0.7))
             }
             .sheet(isPresented: $showingAddWaterSheet) {
-                AddWaterView(waterConsumed: $waterConsumed)
+                AddWaterView(waterConsumed: $waterConsumed, viewModel: viewModel)
             }
+
         }
         .onAppear {
+            executeTask {
+                await waterViewModel.fetchLogs() // Fetch logs when the view appears
+            }
             withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
                 animateWave = true
             }
         }
     }
-    
+
     // MARK: - UI Components
-    
+
     private var backgroundGradient: some View {
         LinearGradient(
             gradient: Gradient(colors: [

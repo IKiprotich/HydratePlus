@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WaterLog: Identifiable {
+struct WaterLog: Identifiable, Decodable, Encodable{
     let id = UUID()
     let amount: Double
     let time: Date
