@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct AddWaterView: View {
-    @Binding var waterConsumed: Double
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: WaterViewModel
     
@@ -64,8 +63,9 @@ struct AddWaterView: View {
                 // Add button - simplified by using computed properties
                 Button {
                     if amountToAdd > 0 {
-                        waterConsumed += amountToAdd
-                        viewModel.logWater(amount: amountToAdd)
+                        Task {
+                                await viewModel.addWater(amount: amountToAdd)
+                                }
                     }
                     dismiss()
                 } label: {
@@ -157,6 +157,6 @@ struct AddWaterView: View {
 }
 
 #Preview {
-    AddWaterView(waterConsumed: .constant(1000), viewModel: WaterViewModel(userID: "UserID"))
+    AddWaterView(viewModel: WaterViewModel(userID: "UserID"))
 }
 

@@ -43,31 +43,31 @@ struct HomeView: View {
     @StateObject private var waterViewModel: WaterViewModel
     @State private var showingAddWaterSheet = false
     @State private var animateWave = false
-    @ObservedObject var viewModel: WaterViewModel
     @State private var waterConsumed: Double = 0
     @StateObject private var userVM = UserViewModel()
+    @ObservedObject var viewModel: WaterViewModel
 
 
     init() {
         // Get the current authenticated user's ID
         let userID = Auth.auth().currentUser?.uid ?? ""
-        _waterViewModel = StateObject(wrappedValue: WaterViewModel(userID: userID))
-        self.viewModel = WaterViewModel(userID: "")
+        let sharedVM = WaterViewModel(userID: userID)
+        _waterViewModel = StateObject(wrappedValue: sharedVM)
+        
+        self.viewModel = sharedVM
 
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background gradient
                 backgroundGradient
-
+                
                 // Main content
                 CustomScrollView {
                     VStack(spacing: 24) {
-                        // Header with greeting
                         let user = userVM.user
-                        GreetingHeader(name: user?.fullname) // You can replace with the actual user's name
+                        GreetingHeader(name: user?.fullname)
                             .padding(.horizontal, 20)
                             .padding(.top, 12)
 
@@ -144,7 +144,7 @@ struct HomeView: View {
                 .background(Color.white.opacity(0.7))
             }
             .sheet(isPresented: $showingAddWaterSheet) {
-                AddWaterView(waterConsumed: $waterConsumed, viewModel: viewModel)
+                AddWaterView(viewModel: waterViewModel)
             }
 
         }
