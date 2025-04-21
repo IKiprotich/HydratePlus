@@ -10,12 +10,14 @@ import Firebase
 import FirebaseFirestore
 import FirebaseAuth
 
+@MainActor
 class UserViewModel: ObservableObject {
     @Published var user: User?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
     private var listener: ListenerRegistration?
+    private let db = Firestore.firestore()
 
     init() {
         fetchUser()
@@ -29,7 +31,7 @@ class UserViewModel: ObservableObject {
 
         isLoading = true
 
-        listener = Firestore.firestore().collection("users").document(uid)
+        listener = db.collection("users").document(uid)
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self = self else { return }
                 self.isLoading = false
@@ -51,6 +53,52 @@ class UserViewModel: ObservableObject {
                     self.errorMessage = "Error decoding user: \(error.localizedDescription)"
                 }
             }
+    }
+
+    func updateUser(fullname: String, profileImageUrl: String) async {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            self.errorMessage = "No user is currently logged in."
+            return
+        }
+
+        do {
+            let data: [String: Any] = [
+                "fullname": fullname,
+                "profileImageUrl": profileImageUrl.isEmpty ? nil : profileImageUrl
+            ]
+            try await db.collection("users").document(uid).updateData(data)
+            // Snapshot listener will automatically update self.user
+        } catch {
+            self.errorMessage = "Error updating user: \(error.localizedDescription)"
+        }
+    }
+
+    func updateDailyGoal(_ goal: Double) async {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            self.errorMessage = "No user is currently logged in."
+            return
+        }
+
+        do {
+            try await db.collection("users").document(uid).updateData(["dailyGoal": goal])
+            // Snapshot listener will automatically update self.user
+        } catch {
+            self.errorMessage = "Error updating daily goal: \(error.localizedDescription)"
+        }
+    }
+
+    func updateNotifications(enabled: Bool) async {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            self.errorMessage = "No user is currently logged in."
+            return
+        }
+
+        do {
+            try await db.collection("users").document(uid).updateData(["notificationsEnabled": enabled])
+            // Snapshot listener will automatically update self.user
+        } catch {
+            self.errorMessage = "Error updating notifications: \(error.localizedDescription)"
+        }
     }
 
     deinit {
