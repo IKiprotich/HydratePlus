@@ -4,7 +4,6 @@
 //
 //  Created by Ian   on 21/04/2025.
 //
-
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
@@ -13,6 +12,7 @@ import FirebaseAuth
 class WaterViewModel: ObservableObject {
     @Published var waterLogs: [WaterLog] = []
     @Published var totalConsumed: Double = 0.0
+
     private var userID: String
     private var db = Firestore.firestore()
 
@@ -20,20 +20,16 @@ class WaterViewModel: ObservableObject {
         self.userID = userID
     }
 
-    // Fetch logs from Firestore
     func fetchLogs() async {
-        let logsRef = db.collection("users").document(userID).collection("waterLogs")
         do {
             let logs = try await WaterLogService().fetchWaterLogs(forUserID: userID)
-            waterLogs = logs
-            totalConsumed = logs.reduce(0) {$0 + $1.amount}
-            
+            self.waterLogs = logs
+            self.totalConsumed = logs.reduce(0) { $0 + $1.amount }
         } catch {
             print("Error fetching water logs: \(error.localizedDescription)")
         }
     }
 
-    // Add water log to Firestore
     func addWater(amount: Double) async {
         let newLog = WaterLog(amount: amount, time: Date())
         do {
@@ -44,57 +40,108 @@ class WaterViewModel: ObservableObject {
             print("Error adding water log: \(error.localizedDescription)")
         }
     }
-    
-    //log water
-    func logWater(amount: Double) {
-        guard let userID = Auth.auth().currentUser?.uid else { return }
-        
-        let db = Firestore.firestore()
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let today = dateFormatter.string(from: Date())
-        
-        let logRef = db.collection("users").document(userID).collection("waterLogs").document(today)
-        
-        // Add to the total and append to entries
-        logRef.getDocument { document, error in
-            if let document = document, document.exists {
-                var data = document.data() ?? [:]
-                let currentTotal = data["total"] as? Double ?? 0
-                let newTotal = currentTotal + amount
-                
-                var entries = data["entries"] as? [[String: Any]] ?? []
-                let timeFormatter = DateFormatter()
-                timeFormatter.dateFormat = "HH:mm"
-                let time = timeFormatter.string(from: Date())
-                
-                let newEntry: [String: Any] = [
-                    "amount": amount,
-                    "time": time
-                ]
-                entries.append(newEntry)
-                
-                logRef.updateData([
-                    "total": newTotal,
-                    "entries": entries
-                ])
-            } else {
-                // Create new document
-                let timeFormatter = DateFormatter()
-                timeFormatter.dateFormat = "HH:mm"
-                let time = timeFormatter.string(from: Date())
-                
-                logRef.setData([
-                    "date": today,
-                    "total": amount,
-                    "entries": [
-                        [
-                            "amount": amount,
-                            "time": time
-                        ]
-                    ]
-                ])
+
+    // MARK: - Used in HistoryView
+    func getGroupedData(for date: Date, timeFrame: TimeFrame) -> [WaterConsumptionData] {
+        switch timeFrame {
+        case .week:
+            return getDailyTotals(for: date)
+        case .day:
+            return getTimeSlotTotals(for: date)
+        case .month:
+            return getMonthlyTotals(for: date)
+        }
+    }
+
+    func getHistoryItems(for date: Date, timeFrame: TimeFrame, dailyGoal: Double) -> [HistoryItem] {
+        let calendar = Calendar.current
+        var items: [HistoryItem] = []
+
+        switch timeFrame {
+        case .day:
+            let logs = waterLogs.filter { calendar.isDate($0.time, inSameDayAs: date) }
+            let total = logs.reduce(0) { $0 + $1.amount }
+            if total > 0 {
+                items.append(HistoryItem(date: date, totalAmount: total, dailyGoal: dailyGoal))
             }
+
+        case .week:
+            guard let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: date)?.start else { return [] }
+            for i in 0..<7 {
+                let day = calendar.date(byAdding: .day, value: i, to: startOfWeek)!
+                let logs = waterLogs.filter { calendar.isDate($0.time, inSameDayAs: day) }
+                let total = logs.reduce(0) { $0 + $1.amount }
+                if total > 0 {
+                    items.append(HistoryItem(date: day, totalAmount: total, dailyGoal: dailyGoal))
+                }
+            }
+
+        case .month:
+            guard let range = calendar.range(of: .day, in: .month, for: date),
+                  let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: date)) else { return [] }
+
+            for day in range {
+                if let dayDate = calendar.date(byAdding: .day, value: day - 1, to: monthStart) {
+                    let logs = waterLogs.filter { calendar.isDate($0.time, inSameDayAs: dayDate) }
+                    let total = logs.reduce(0) { $0 + $1.amount }
+                    if total > 0 {
+                        items.append(HistoryItem(date: dayDate, totalAmount: total, dailyGoal: dailyGoal))
+                    }
+                }
+            }
+        }
+
+        return items
+    }
+
+    // MARK: - Helpers
+    private func getDailyTotals(for referenceDate: Date) -> [WaterConsumptionData] {
+        let calendar = Calendar.current
+        guard let weekStart = calendar.dateInterval(of: .weekOfYear, for: referenceDate)?.start else { return [] }
+
+        return (0..<7).map { offset in
+            let date = calendar.date(byAdding: .day, value: offset, to: weekStart)!
+            let dailyLogs = waterLogs.filter { calendar.isDate($0.time, inSameDayAs: date) }
+            
+            // Create WaterConsumptionData for each day
+            let totalAmount = dailyLogs.reduce(0) { $0 + $1.amount }
+            return WaterConsumptionData(date: date, amount: totalAmount, label: "\(calendar.shortWeekdaySymbols[offset])") // Adjust label as needed
+        }
+    }
+
+    private func getTimeSlotTotals(for date: Date) -> [WaterConsumptionData] {
+        // 6 time slots: 0-4, 4-8, ..., 20-24
+        var slotTotals = Array(repeating: 0.0, count: 6)
+        let calendar = Calendar.current
+
+        for log in waterLogs {
+            if calendar.isDate(log.time, inSameDayAs: date) {
+                let hour = calendar.component(.hour, from: log.time)
+                let slotIndex = hour / 4
+                if slotIndex < 6 {
+                    slotTotals[slotIndex] += log.amount
+                }
+            }
+        }
+
+        // Create WaterConsumptionData for each time slot
+        return slotTotals.enumerated().map { index, totalAmount in
+            WaterConsumptionData(date: date, amount: totalAmount, label: "\(index * 4)-\(index * 4 + 4)") // Example: "0-4", "4-8"
+        }
+    }
+
+    private func getMonthlyTotals(for date: Date) -> [WaterConsumptionData] {
+        let calendar = Calendar.current
+        guard let range = calendar.range(of: .day, in: .month, for: date),
+              let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: date)) else { return [] }
+
+        return range.map { day in
+            if let currentDate = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth) {
+                let logs = waterLogs.filter { calendar.isDate($0.time, inSameDayAs: currentDate) }
+                let totalAmount = logs.reduce(0) { $0 + $1.amount }
+                return WaterConsumptionData(date: date, amount: totalAmount, label: "\(day)") // Label is the day number
+            }
+            return WaterConsumptionData(date: date, amount: 0.0, label: "\(day)") // Return an empty data object for the day
         }
     }
 }
