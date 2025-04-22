@@ -24,14 +24,12 @@ class WaterViewModel: ObservableObject {
     func fetchLogs() async {
         let logsRef = db.collection("users").document(userID).collection("waterLogs")
         do {
-            let snapshot = try await logsRef.getDocuments()
-            waterLogs = snapshot.documents.compactMap { doc -> WaterLog? in
-                try? doc.data(as: WaterLog.self)
-            }
-            // Calculate total consumed water
-            totalConsumed = waterLogs.reduce(0) { $0 + $1.amount }
+            let logs = try await WaterLogService().fetchWaterLogs(forUserID: userID)
+            waterLogs = logs
+            totalConsumed = logs.reduce(0) {$0 + $1.amount}
+            
         } catch {
-            print("Error fetching water logs: \(error)")
+            print("Error fetching water logs: \(error.localizedDescription)")
         }
     }
 
@@ -39,11 +37,11 @@ class WaterViewModel: ObservableObject {
     func addWater(amount: Double) async {
         let newLog = WaterLog(amount: amount, time: Date())
         do {
-            let _ = try await db.collection("users").document(userID).collection("waterLogs").addDocument(from: newLog)
-            waterLogs.append(newLog)
+            try await WaterLogService().addWaterLog(forUserID: userID, log: newLog)
+            waterLogs.insert(newLog, at: 0)
             totalConsumed += amount
         } catch {
-            print("Error adding water log: \(error)")
+            print("Error adding water log: \(error.localizedDescription)")
         }
     }
     

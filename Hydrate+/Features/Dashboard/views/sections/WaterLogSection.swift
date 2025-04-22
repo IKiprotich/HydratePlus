@@ -35,8 +35,7 @@ struct WaterLogSection: View {
             
             // Water log items
             VStack(spacing: 12) {
-                ForEach(logs) { log in // Fixed: Removed id parameter as WaterLog is already Identifiable
-                    WaterLogItem(log: log)
+                ForEach(logs.sorted(by: {$0.time > $1.time})) { log in WaterLogItem(log: log)
                 }
             }
             .padding(.horizontal, 20)
