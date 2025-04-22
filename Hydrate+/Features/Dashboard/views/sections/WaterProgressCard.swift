@@ -15,12 +15,12 @@ struct WaterProgressCard: View {
     @State private var animateWave = false
     @State private var showPercentage = false
     
-    // Custom colors
+
     private let accentBlue = Color(red: 0.0, green: 0.6, blue: 0.9)
     private let deepBlue = Color(red: 0.0, green: 0.4, blue: 0.8)
     private let lightBlue = Color(red: 0.8, green: 0.95, blue: 1.0)
     
-    // Computed properties
+ 
     private var progressPercentage: Double {
         min(waterConsumed / dailyGoal, 1.0)
     }
@@ -37,9 +37,7 @@ struct WaterProgressCard: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Card content
             ZStack {
-                // Card background with gradient
                 RoundedRectangle(cornerRadius: 28)
                     .fill(
                         LinearGradient(
@@ -50,9 +48,7 @@ struct WaterProgressCard: View {
                     )
                     .shadow(color: accentBlue.opacity(0.2), radius: 15, x: 0, y: 8)
                 
-                // Content
                 VStack(spacing: 24) {
-                    // Date and goal info
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(Date(), style: .date)
@@ -78,14 +74,12 @@ struct WaterProgressCard: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 24)
                     
-                    // Progress visualization
                     ZStack {
-                        // Water container
                         Circle()
                             .stroke(Color.blue.opacity(0.1), lineWidth: 10)
                             .frame(width: 220, height: 220)
                         
-                        // Water wave effect
+                        
                         WaterWaveView(progress: progressPercentage, waveHeight: 5, animatablePhase: animateWave ? 1 : 0)
                             .frame(width: 200, height: 200)
                             .clipShape(Circle())
@@ -95,7 +89,6 @@ struct WaterProgressCard: View {
                                     .opacity(0.7)
                             )
                         
-                        // Progress indicator
                         Circle()
                             .trim(from: 0, to: progressPercentage)
                             .stroke(
@@ -110,7 +103,6 @@ struct WaterProgressCard: View {
                             .rotationEffect(.degrees(-90))
                             .frame(width: 220, height: 220)
                         
-                        // Center content
                         VStack(spacing: 8) {
                             Image(systemName: "drop.fill")
                                 .font(.system(size: 36))
@@ -139,7 +131,6 @@ struct WaterProgressCard: View {
                     }
                     .padding(.vertical, 10)
                     
-                    // Add water button
                     Button(action: onAddWaterTap) {
                         HStack {
                             Image(systemName: "plus.circle.fill")

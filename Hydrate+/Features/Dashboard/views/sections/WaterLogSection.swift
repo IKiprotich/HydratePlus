@@ -40,7 +40,6 @@ struct WaterLogSection: View {
             }
             .padding(.horizontal, 20)
             
-            // Quick add buttons
             QuickAddButtons(amounts: [250, 500, 750]) { amount in
                 onAddAmount(amount)
             }
@@ -58,7 +57,7 @@ struct WaterLogSection: View {
 
 #Preview {
     WaterLogSection(
-        logs: SampleData.getSampleWaterLogs(), // Fixed: Added SampleData prefix
+        logs: SampleData.getSampleWaterLogs(), 
         onViewAll: {},
         onAddAmount: { _ in }
     )

@@ -14,13 +14,12 @@ struct WaterWaveView: View {
     
     var body: some View {
         ZStack {
-            // Fill color based on progress
+// Fill color based on progress
             GeometryReader { geometry in
                 let width = geometry.size.width
                 let height = geometry.size.height
                 let midY = height * (1 - progress)
                 
-                // Background fill
                 Rectangle()
                     .fill(
                         LinearGradient(
@@ -35,7 +34,6 @@ struct WaterWaveView: View {
                     .frame(width: width, height: height * progress)
                     .position(x: width / 2, y: height - (height * progress) / 2)
                 
-                // First wave
                 Path { path in
                     path.move(to: CGPoint(x: 0, y: midY))
                     
@@ -52,7 +50,6 @@ struct WaterWaveView: View {
                 }
                 .fill(Color.blue.opacity(0.7))
                 
-                // Second wave (offset)
                 Path { path in
                     path.move(to: CGPoint(x: 0, y: midY))
                     

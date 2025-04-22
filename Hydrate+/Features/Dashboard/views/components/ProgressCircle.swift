@@ -41,12 +41,10 @@ struct ProgressCircleView: View {
     
     var body: some View {
         ZStack {
-            // Background circle
             Circle()
                 .stroke(Color.gray.opacity(0.2), lineWidth: lineWidth)
                 .frame(width: size, height: size)
             
-            // Progress circle
             Circle()
                 .trim(from: 0, to: progressFraction)
                 .stroke(
@@ -57,7 +55,6 @@ struct ProgressCircleView: View {
                 .frame(width: size, height: size)
                 .animation(.easeInOut(duration: 1.0), value: progress)
             
-            // Center content
             centerContent
         }
     }

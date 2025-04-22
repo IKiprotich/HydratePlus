@@ -13,7 +13,6 @@ struct StatsSection: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Streak card
             StatCard(
                 icon: "flame.fill",
                 value: "\(streak)",
@@ -21,7 +20,6 @@ struct StatsSection: View {
                 color: .orange
             )
             
-            // Average card
             StatCard(
                 icon: "chart.bar.fill",
                 value: dailyAverage,
