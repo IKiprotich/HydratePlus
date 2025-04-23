@@ -5,18 +5,10 @@
 //  Created by Ian   on 11/04/2025.
 //
 
-//
-//  HomeView.swift
-//  Hydrate+
-//
-//  Created by Ian   on 11/04/2025.
-//
-
 import SwiftUI
 import FirebaseAuth
 import Foundation
 
-// a custom scroll view wrapper to avoid ambiguity
 struct CustomScrollView<Content: View>: View {
     let content: Content
     
@@ -25,14 +17,13 @@ struct CustomScrollView<Content: View>: View {
     }
     
     var body: some View {
-        SwiftUI.ScrollView {
+        ScrollView {
             content
         }
         .scrollIndicators(.hidden)
     }
 }
 
-// This is a custom task wrapper to avoid ambiguity
 func executeTask<T>(priority: TaskPriority? = nil, operation: @escaping () async -> T) {
     Task(priority: priority) {
         await operation()
@@ -46,7 +37,8 @@ struct HomeView: View {
     @State private var waterConsumed: Double = 0
     @StateObject private var userVM = UserViewModel()
     @ObservedObject var viewModel: WaterViewModel
-
+    @State private var showProfile = false
+    @State private var showNotifications = false
 
     init() {
         let userID = Auth.auth().currentUser?.uid ?? ""
@@ -61,18 +53,16 @@ struct HomeView: View {
             ZStack {
                 backgroundGradient
                 
-// Main content
                 CustomScrollView {
                     VStack(spacing: 24) {
                         let user = userVM.user
                         GreetingHeader(name: user?.fullname)
                             .padding(.horizontal, 20)
                             .padding(.top, 12)
-
-// Water progress card
+                        
                         WaterProgressCard(
                             waterConsumed: waterViewModel.totalConsumed,
-                            dailyGoal: 2000, //TO DO: Set dynamic daily goal
+                            dailyGoal: 2000,
                             onAddWaterTap: {
                                 withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                                     showingAddWaterSheet = true
@@ -80,16 +70,14 @@ struct HomeView: View {
                             }
                         )
                         .padding(.horizontal)
-
-// Stats cards
+                        
                         StatsSection(streak: 0, dailyAverage: "0")
                             .padding(.horizontal)
-
-//water log section
+                        
                         WaterLogSection(
                             logs: waterViewModel.waterLogs,
                             onViewAll: {
-//TO DO: Navigate to logs view if i'll build it
+                                // TO DO: Navigate to logs view if built
                             },
                             onAddAmount: { amount in
                                 withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
@@ -103,12 +91,16 @@ struct HomeView: View {
                     }
                     .padding(.bottom, 32)
                 }
+                
+                NavigationLink(destination: ProfileView(), isActive: $showProfile) {
+                    EmptyView()
+                }.hidden()
             }
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .top) {
                 HStack {
                     Button {
-// TO DO: Open profile
+                        showProfile = true
                     } label: {
                         Image(systemName: "person.crop.circle.fill")
                             .font(.system(size: 18))
@@ -127,14 +119,26 @@ struct HomeView: View {
                     Spacer()
                     
                     Button {
-// TO DO: Implement the navigation to notifications feature
+                        showNotifications.toggle()
                     } label: {
-                        Image(systemName:"bell.badge.fill" )
+                        Image(systemName:"bell.badge.fill")
                             .font(.system(size: 18))
                             .foregroundStyle(Color.deepBlue)
                             .padding(8)
                             .background(Color.lightBlue.opacity(0.5))
                             .clipShape(Circle())
+                    }
+                    .popover(isPresented: $showNotifications, arrowEdge: .top) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Notifications")
+                                .font(.headline)
+                            Divider()
+                            Text("• Drink some water 💧")
+                            Text("• You hit your goal yesterday 🎉")
+                            Text("• Remember to hydrate today!")
+                        }
+                        .padding()
+                        .frame(width: 250)
                     }
                 }
                 .padding(.horizontal)
@@ -144,19 +148,17 @@ struct HomeView: View {
             .sheet(isPresented: $showingAddWaterSheet) {
                 AddWaterView(viewModel: waterViewModel)
             }
-
-        }
-        .onAppear {
-            executeTask {
-                await waterViewModel.fetchLogs()
-            }
-            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                animateWave = true
+            .onAppear {
+                executeTask {
+                    await waterViewModel.fetchLogs()
+                }
+                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                    animateWave = true
+                }
             }
         }
     }
 
-// MARK: - UI Components
     private var backgroundGradient: some View {
         LinearGradient(
             gradient: Gradient(colors: [
