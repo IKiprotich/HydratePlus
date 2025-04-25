@@ -4,28 +4,35 @@
 //
 //  Created by Ian   on 21/04/2025.
 //
-import FirebaseFirestore
+
 import FirebaseFirestore
 
-class WaterLogService {
-    private let db = Firestore.firestore()
-    
-  
-    func addWaterLog(forUserID userID: String, log: WaterLog) async throws {
-        let docRef = db.collection("users").document(userID).collection("waterLogs").document()
-        
-        var newLog = log
-        newLog.id = docRef.documentID
-        try docRef.setData(from: newLog)
-    }
-    
+struct WaterLogService {
     func fetchWaterLogs(forUserID userID: String) async throws -> [WaterLog] {
-        let snapshot = try await db.collection("users").document(userID).collection("waterLogs")
-            .order(by: "time", descending: true)
+        let db = Firestore.firestore()
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+        let snapshot = try await db
+            .collection("users")
+            .document(userID)
+            .collection("waterLogs")
+            .whereField("time", isGreaterThanOrEqualTo: Timestamp(date: startOfDay))
+            .whereField("time", isLessThan: Timestamp(date: endOfDay))
             .getDocuments()
-        
-        return try snapshot.documents.compactMap { doc in
-            try doc.data(as: WaterLog.self)
+
+        return snapshot.documents.compactMap { doc in
+            try? doc.data(as: WaterLog.self)
         }
     }
+
+    func addWaterLog(forUserID userID: String, log: WaterLog) async throws {
+        let db = Firestore.firestore()
+        let _ = try await db.collection("users").document(userID).collection("waterLogs").addDocument(data: [
+            "amount": log.amount,
+            "time": Timestamp(date: log.time)
+        ])
+    }
 }
+
