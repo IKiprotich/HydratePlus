@@ -12,12 +12,7 @@ import FirebaseCore
 import GoogleSignIn
 
 
-protocol AuthenticationFormProtocol {
-    
-    var formIsValid: Bool {get}
-    
-    
-}
+
 
 @MainActor
 class AuthViewModel: ObservableObject{

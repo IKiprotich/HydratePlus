@@ -11,4 +11,9 @@ extension Color {
     static let waterBlue = Color(red: 0.0, green: 0.48, blue: 0.8)
     static let deepBlue = Color(red: 0.0, green: 0.32, blue: 0.6)
     static let lightBlue = Color(red: 0.7, green: 0.9, blue: 1.0)
+    
+    
+        static let validGreen = Color.green
+        static let warningOrange = Color.orange
+        static let errorRed = Color.red
 }

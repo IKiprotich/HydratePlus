@@ -2,374 +2,353 @@
 //  RegistrationView.swift
 //  Hydrate+
 //
-//  Created by Ian   on 09/04/2025.
+//  Created by Ian on 09/04/2025.
 //
 
 import SwiftUI
+
+// MARK: - Authentication Form Protocol
+protocol AuthenticationFormProtocol {
+    var formIsValid: Bool { get }
+}
+
+// MARK: - Placeholder SocialSignInButton (Assumed Component)
+struct SocialSignInButton: View {
+    let imageName: String
+    let serviceName: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(imageName) 
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                Text(serviceName)
+            }
+            .frame(width: 120, height: 44)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(8)
+        }
+        .accessibilityLabel("Sign in with \(serviceName)")
+    }
+}
 
 struct RegistrationView: View {
     @State private var email = ""
     @State private var fullname = ""
     @State private var password = ""
-    @State private var confirmpassword = ""
-    @State private var phoneNumber = ""
-    @State private var selectedAuthMethod = AuthMethod.email
-    @State private var showingPhoneVerification = false
-    
+    @State private var confirmPassword = ""
+    @State private var agreeToTerms = false
+    @State private var showingPasswordRequirements = false
     
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: AuthViewModel
     
-    
-    enum AuthMethod{
-        case email
-        case phone
-    }
-    
-    
     var body: some View {
-        VStack{
-            
-//App logo
-            Image("Hydrate+")
-                .resizable()
-                .scaledToFill()
-                .frame(width: 100, height: 120)
-                .padding(.vertical, 32)
-                .shadow(color: Color.waterBlue.opacity(0.5), radius: 10)
-            
-            
-//Authentication Method toggle
-            Picker("Authentication Method", selection: $selectedAuthMethod) {
-                Text("Email").tag(AuthMethod.email)
-                Text("Phone").tag(AuthMethod.phone)
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding(.horizontal, 24)
-            .padding(.bottom, 12)
-            
-            
-//Input fields based on the selected auth method
-            if selectedAuthMethod == .email{
-                emailRegistrationForm
-            }
-            else{
-                phoneRegistrationForm
-            }
-            
-//Sign Up Button
-            Button {
-                if selectedAuthMethod == .email {
-                    Task {
-                        try await viewModel.createUser(withEmail: email,
-                                                       password: password,
-                                                       fullname: fullname)
-                    }
-                }
+        ScrollView {
+            VStack(spacing: 20) {
+// App logo with animation
+                LogoView()
+                    .scaleEffect(0.8)
+                    .padding(.vertical, 10)
                 
-                else {
-                    showingPhoneVerification = true //this implements the phone verification logic in the authviewmodel
+// Header text
+                Text("Create Your Account")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.waterBlue)
+                
+// Input fields for email registration
+                emailRegistrationForm
+                    .padding(.top, 10)
+                
+                // Terms and conditions checkbox
+                Button(action: {
+                    agreeToTerms.toggle()
+                }) {
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: agreeToTerms ? "checkmark.square.fill" : "square")
+                            .foregroundColor(agreeToTerms ? .waterBlue : .gray)
+                            .font(.system(size: 16))
+                        
+                        Text("I agree to the Terms of Service and Privacy Policy")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding(.horizontal, 26)
                 }
-            } label: {
-                HStack{
-                    Text("Sign Up")
-                        .fontWeight(.semibold)
-                    Image(systemName: "arrow.right")
+                .accessibilityLabel("Agree to terms and conditions")
+                
+// Sign Up Button
+                Button {
+                    Task {
+                        try await viewModel.createUser(
+                            withEmail: email,
+                            password: password,
+                            fullname: fullname
+                        )
+                    }
+                } label: {
+                    HStack {
+                        Text("Create Account")
+                            .fontWeight(.semibold)
+                        Image(systemName: "person.crop.circle.badge.plus")
+                            .font(.system(size: 16))
+                    }
+                    .frame(width: UIScreen.main.bounds.width - 48, height: 54)
                 }
                 .foregroundColor(.white)
-                .frame(width: UIScreen.main.bounds.width - 32, height: 48)
-            }
-            .background(Color.waterBlue)
-            .disabled(!formIsValid)
-            .opacity(!formIsValid ? 1.0 : 0.5)
-            .cornerRadius(8.0)
-            .padding(.top, 12)
-            
-            
-//Or Sign up with text
-            Text("Or sign up with")
-                .font(.footnote)
-                .foregroundColor(.secondary)
-                .padding(.top, 16)
-            
-            
-//Social Sign In buttons row
-            HStack(spacing:24){
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [.waterBlue, .waterBlue.opacity(0.8)]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(12)
+                .shadow(color: .waterBlue.opacity(0.4), radius: 6, x: 0, y: 3)
+                .disabled(!formIsValid || !agreeToTerms)
+                .opacity((formIsValid && agreeToTerms) ? 1.0 : 0.6)
+                .padding(.vertical, 10)
+                .accessibilityLabel("Create account button")
                 
-                
-//Google button
-                Button{
-                    Task{//it should implement google authentication
-                        try await viewModel.signInWithGoogle()
-                    }
-                } label: {
-                    HStack{
-                        Image("google_logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width:20, height: 20)
-                        
-                        Text("Google")
-                            .font(.system(size: 14))
-                            .fontWeight(.medium)
-                    }
-                    .foregroundColor(.black)
-                    .frame(width: 112, height: 44)
-                    .background(Color.white)
-                    .cornerRadius(8)
-                    .overlay( RoundedRectangle(cornerRadius:8).stroke(Color.gray.opacity(0.3), lineWidth: 1))
-                }
-                
-//Apple Button
-                Button{
-                    Task{//it should implement google authentication
-                        try await viewModel.signInWithApple()
-                    }
-                } label: {
-                    HStack{
-                        Image("Apple_logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width:20, height: 20)
-                        
-                        Text("Apple")
-                            .font(.system(size: 14))
-                            .fontWeight(.medium)
-                    }
-                    .foregroundColor(.black)
-                    .frame(width: 112, height: 44)
-                    .background(Color.white)
-                    .cornerRadius(8)
-                }
-            }
-            .padding(.bottom, 16)
-            
-            Spacer()
-            
-//Link to the sign in view
-            Button {
-                dismiss()
-            }
-            label: {
-                HStack(spacing: 2){
-                    Text("Already have an account?")
+// Divider with text
+                HStack {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 1)
+                    
+                    Text("Or sign up with")
+                        .font(.footnote)
                         .foregroundColor(.secondary)
-                    Text("Sign In")
-                        .fontWeight(.bold)
-                        .foregroundColor(Color.waterBlue)
+                        .padding(.horizontal, 10)
+                    
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 1)
                 }
-                .font(.system(size: 14))
+                .padding(.horizontal, 24)
+                .padding(.vertical, 10)
+                
+// Social Sign Up buttons row
+                HStack(spacing: 24) {
+                    // Google button
+                    SocialSignInButton(
+                        imageName: "google_logo",
+                        serviceName: "Google",
+                        action: {
+                            Task {
+                                try await viewModel.signInWithGoogle()
+                            }
+                        }
+                    )
+                    
+                    // Apple Button
+                    SocialSignInButton(
+                        imageName: "Apple_logo",
+                        serviceName: "Apple",
+                        action: {
+                            Task {
+                                try await viewModel.signInWithApple()
+                            }
+                        }
+                    )
+                }
+                
+                Spacer()
+                
+// Link to the sign-in view
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Already have an account?")
+                            .foregroundColor(.secondary)
+                        Text("Sign In")
+                            .fontWeight(.bold)
+                            .foregroundColor(.waterBlue)
+                    }
+                    .font(.system(size: 15))
+                }
+                .padding(.vertical, 20)
+                .accessibilityLabel("Sign in link")
             }
-            .padding(.bottom, 16)
+            .padding(.horizontal)
         }
         .background(
-            LinearGradient(gradient:Gradient(colors: [.white, Color.lightBlue.opacity(0.3)]),
-                           startPoint: .top,
-                           endPoint: .bottom
-                          )
-            .edgesIgnoringSafeArea(.all)
+            LinearGradient(
+                gradient: Gradient(colors: [.white, .lightBlue.opacity(0.3)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
         )
-        .sheet(isPresented: $showingPhoneVerification) {
-            PhoneVerificationView(phoneNumber: phoneNumber)
+        .sheet(isPresented: $showingPasswordRequirements) {
+            PasswordRequirementsView()
         }
     }
     
-    
-//Email registration Form
+// Email Registration Form
     private var emailRegistrationForm: some View {
-        VStack(spacing: 24){
-            InputView(text: $email,
-                      Title: "Email Address",
-                      placeholder: "name@example.com",
-                      isSecureField: false)
-            .modifier(InputViewModifier())
+        VStack(spacing: 16) {
+            InputView(
+                text: $fullname,
+                Title: "Full Name",
+                placeholder: "Enter your name",
+                isSecureField: false,
+                iconName: "person.fill"
+            )
             
-            InputView(text: $fullname,
-                      Title: "Full Name",
-                      placeholder: "Enter Your Name",
-                      isSecureField: false)
-            .modifier(InputViewModifier())
+            InputView(
+                text: $email,
+                Title: "Email Address",
+                placeholder: "name@example.com",
+                isSecureField: false,
+                iconName: "envelope.fill"
+            )
             
-            InputView(text: $password,
-                      Title: "Password",
-                      placeholder: "Enter your password",
-                      isSecureField: true)
-            .modifier(InputViewModifier())
+            InputView(
+                text: $password,
+                Title: "Password",
+                placeholder: "Enter your password",
+                isSecureField: true,
+                iconName: "lock.fill"
+            )
+            .overlay(
+                Group {
+                    if !password.isEmpty {
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                showingPasswordRequirements = true
+                            }) {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.waterBlue)
+                                    .padding(.trailing, 12)
+                            }
+                            .accessibilityLabel("Password requirements info")
+                        }
+                    }
+                }
+            )
             
-            ZStack(alignment: .trailing){
-                InputView(text: $confirmpassword,
-                          Title: "Confirm Password",
-                          placeholder: "Confirm your password",
-                          isSecureField: true)
-                .modifier(InputViewModifier())
+            ZStack(alignment: .trailing) {
+                InputView(
+                    text: $confirmPassword,
+                    Title: "Confirm Password",
+                    placeholder: "Confirm your password",
+                    isSecureField: true,
+                    iconName: "lock.shield.fill"
+                )
                 
-                if !password.isEmpty && !confirmpassword.isEmpty {
-                    if password == confirmpassword {
+                if !password.isEmpty && !confirmPassword.isEmpty {
+                    if password == confirmPassword {
                         Image(systemName: "checkmark.circle.fill")
                             .imageScale(.large)
                             .fontWeight(.bold)
                             .foregroundColor(.green)
-                            .padding(.trailing, 8)
-                    }else{
+                            .padding(.trailing, 12)
+                    } else {
                         Image(systemName: "xmark.circle.fill")
                             .imageScale(.large)
                             .fontWeight(.bold)
                             .foregroundColor(.red)
-                            .padding(.trailing, 8)
+                            .padding(.trailing, 12)
                     }
                 }
-                
             }
         }
-        .padding(.horizontal)
-    }
-    
-    
-//Phone Registration form
-    private var phoneRegistrationForm: some View {
-        VStack(spacing: 20) {
-            InputView(text: $phoneNumber,
-                      Title: "Phone Number",
-                      placeholder: "+254712345678",
-                      isSecureField: false)
-            .modifier(InputViewModifier())
-            .keyboardType(.phonePad)
-            
-            InputView(text: $fullname,
-                      Title: "Full Name",
-                      placeholder: "Enter Your Name",
-                      isSecureField: false)
-            .modifier(InputViewModifier())
-        }
-        .padding(.horizontal)
-    }
-}
- 
-
-//MARK: - Input View Modifier
-struct InputViewModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                .fill(Color.white)
-                .shadow(color: Color.waterBlue.opacity(0.1), radius: 5, x: 0, y: 2))
-    }
-}
-            
-           
-//MARK: - Authentication form protocol
-extension RegistrationView: AuthenticationFormProtocol{
-    var formIsValid: Bool {
-        if selectedAuthMethod == .email {
-            return !email.isEmpty
-            && email.contains("@")
-            && !password.isEmpty
-            && password.count > 5
-            && confirmpassword == password
-            && !fullname.isEmpty
-        }
-        else{
-            return !phoneNumber.isEmpty
-            && phoneNumber.count == 10
-            && !fullname.isEmpty
-        }
+        .padding(.horizontal, 24)
     }
 }
 
-
-//MARK: - Phone Verification View
-struct PhoneVerificationView: View {
-    let phoneNumber: String
-    @State private var verificationCode = ""
+// MARK: - Password Requirements View
+struct PasswordRequirementsView: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Verify Your Phone")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(Color.waterBlue)
-            
-            Text("We sent a verification code to \(phoneNumber)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            
-            // Verification code input
-            HStack(spacing: 12) {
-                ForEach(0..<6) { index in
-                    OTPTextField(index: index, verificationCode: $verificationCode)
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Text("Password Requirements")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.waterBlue)
+                
+                Spacer()
+                
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.gray)
                 }
+                .accessibilityLabel("Close password requirements")
             }
-            .padding(.vertical, 24)
+            .padding()
+            
+            VStack(alignment: .leading, spacing: 12) {
+                requirement(text: "At least 6 characters long", isMet: true)
+                requirement(text: "Contains at least one uppercase letter", isMet: true)
+                requirement(text: "Contains at least one number", isMet: true)
+                requirement(text: "Contains at least one special character", isMet: true)
+            }
+            .padding()
+            
+            Spacer()
             
             Button {
-                // to implement verification logic
                 dismiss()
             } label: {
-                Text("Verify")
+                Text("Got it")
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
-                    .frame(width: 200, height: 48)
-                    .background(Color.waterBlue)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.blue)
                     .cornerRadius(10)
             }
-            .disabled(verificationCode.count < 6)
-            .opacity(verificationCode.count < 6 ? 0.5 : 1.0)
+            .padding()
+            .accessibilityLabel("Dismiss password requirements")
+        }
+        .background(Color.white)
+        .cornerRadius(20)
+        .padding()
+    }
+    
+    private func requirement(text: String, isMet: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: isMet ? "checkmark.circle.fill" : "xmark.circle.fill")
+                .foregroundColor(isMet ? .green : .red)
             
-            Button {
-                // to implement resend code logic
-                
-            } label: {
-                Text("Resend Code")
-                    .font(.footnote)
-                    .fontWeight(.medium)
-                    .foregroundColor(Color.waterBlue)
-            }
-            .padding(.top, 8)
+            Text(text)
+                .font(.subheadline)
+                .foregroundColor(.primary)
             
             Spacer()
         }
-        .padding()
-        .background(
-            LinearGradient(
-                gradient: Gradient(colors: [.white, Color.lightBlue.opacity(0.3)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .edgesIgnoringSafeArea(.all)
-        )
     }
 }
 
-
-//MARK: - OTP TextField
-struct OTPTextField: View {
-    let index: Int
-    @Binding var verificationCode: String
-    
-    var body: some View {
-        ZStack {
-            if verificationCode.count > index {
-                let startIndex = verificationCode.startIndex
-                let charIndex = verificationCode.index(startIndex, offsetBy: index)
-                Text(String(verificationCode[charIndex]))
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color.waterBlue)
-            }
-        }
-        .frame(width: 44, height: 44)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.waterBlue, lineWidth: 1)
-                .background(Color.white.cornerRadius(8))
-        )
+// MARK: - Authentication Form Protocol Conformance
+extension RegistrationView: AuthenticationFormProtocol {
+    var formIsValid: Bool {
+        return !email.isEmpty &&
+               email.contains("@") &&
+               !password.isEmpty &&
+               password.count >= 6 &&
+               password.contains(where: { $0.isUppercase }) &&
+               password.contains(where: { $0.isNumber }) &&
+               password.contains(where: { "!@#$%^&*()_+-=[]{}|;:,.<>?".contains($0) }) &&
+               confirmPassword == password &&
+               !fullname.isEmpty
     }
 }
 
+// MARK: - Preview
 #Preview {
     RegistrationView()
         .environmentObject(AuthViewModel())

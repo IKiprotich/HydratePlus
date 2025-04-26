@@ -2,7 +2,7 @@
 //  LoginView.swift
 //  Hydrate+
 //
-//  Created by Ian   on 09/04/2025.
+//  Created by Ian on 09/04/2025.
 //
 
 import SwiftUI
@@ -10,232 +10,221 @@ import SwiftUI
 struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
-    @State private var phoneNumber = ""
-    @State private var selectedAuthMethod = AuthMethod.email
-    @State private var showingPhoneVerification = false
+    @State private var rememberMe = false
     @EnvironmentObject var viewModel: AuthViewModel
     
-    enum AuthMethod{
-        case email
-        case phone
-    }
-    
     var body: some View {
-        NavigationStack{
-            VStack{
-//Logo
-                Image("Hydrate+")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 100, height: 120)
-                    .padding(.vertical, 24)
-                    .shadow(color: Color.waterBlue.opacity(0.5), radius: 10)
-                
-                
-//Authentication method toggle
-                Picker("Authentication Method", selection: $selectedAuthMethod){
-                    Text("Email").tag(AuthMethod.email)
-                    Text("Phone").tag(AuthMethod.phone)
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal, 24)
-                .padding(.bottom, 12)
-                
-                
-//input fields based on the selected auth method
-                if selectedAuthMethod == .email{
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+// Logo with animation
+                    LogoView()
+                    
+// Input fields for email login
                     emailLoginForm
-                }
-                else {
-                    phoneLoginForm
-                }
-                
-                
-    
-//Sign In Button
-                Button {
-                    if selectedAuthMethod == .email{
+                        .padding(.vertical, 10)
+                    
+// Remember me and forgot password
+                    HStack {
+                        Button(action: {
+                            rememberMe.toggle()
+                        }) {
+                            HStack(alignment: .center, spacing: 8) {
+                                Image(systemName: rememberMe ? "checkmark.square.fill" : "square")
+                                    .foregroundColor(rememberMe ? .waterBlue : .gray)
+                                    .font(.system(size: 16))
+                                
+                                Text("Remember me")
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .accessibilityLabel("Remember me checkbox")
+                        
+                        Spacer()
+                        
+// Forgot password link
+                        Button {
+                            // TODO: Implement forgot password functionality
+                        } label: {
+                            Text("Forgot Password?")
+                                .font(.footnote)
+                                .fontWeight(.medium)
+                                .foregroundColor(.waterBlue)
+                        }
+                        .accessibilityLabel("Forgot password link")
+                    }
+                    .padding(.horizontal, 24)
+                    
+// Sign In Button
+                    Button {
                         Task {
                             try await viewModel.signIn(withEmail: email, password: password)
                         }
-                    }
-                    else{
-                        showingPhoneVerification = true
-                        Task {
-                            try await viewModel.signInWithPhoneNumber(phoneNumber: phoneNumber)
+                    } label: {
+                        HStack {
+                            Text("Sign In")
+                                .fontWeight(.semibold)
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.system(size: 16))
                         }
-                    }
-                }
-                label: {
-                    HStack {
-                        Text("Sign In")
-                            .fontWeight(.semibold)
-                        Image(systemName: "arrow.right")
+                        .frame(width: UIScreen.main.bounds.width - 48, height: 54)
                     }
                     .foregroundColor(.white)
-                    .frame(width: UIScreen.main.bounds.width - 32, height: 48)
-                }
-                .background(Color.waterBlue)
-                .disabled(!formIsValid)
-                .opacity(formIsValid ? 1.0 : 0.5)
-                .cornerRadius(10)
-                .padding(.top, 16)
-                
-                
-//forgot passwprd link
-                Button{
-//I'll have to implement logic from here
-                } label: {
-                    Text("Forgot Password?")
-                        .font(.system(size: 14))
-                        .fontWeight(.medium)
-                        .foregroundColor(Color.waterBlue)
-                }
-                .padding(.top, 16)
-                
-                
-//or sign in with
-                Text("Or sign in with")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-                    .padding(.vertical, 16)
-                
-                
-//row for other ways to sign in
-                HStack(spacing:24){
-//google button
-                    Button{
-                        Task{
-                            try await viewModel.signInWithGoogle()
-                        }
-                    } label: {
-                        HStack{
-                            Image("google_logo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
-                            
-                            Text("Google")
-                                .font(.system(size: 14))
-                                .fontWeight(.medium)
-                        }
-                        .foregroundColor(.black)
-                        .frame(width:140, height: 44)
-                        .background(Color.white)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [.waterBlue, .waterBlue.opacity(0.8)]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                    .shadow(color: .waterBlue.opacity(0.4), radius: 6, x: 0, y: 3)
+                    .disabled(!formIsValid)
+                    .opacity(formIsValid ? 1.0 : 0.6)
+                    .padding(.top, 10)
+                    .accessibilityLabel("Sign in button")
+                    
+// Divider with text
+                    HStack {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 1)
                         
-                    }
-                    
-                    
-//apple button
-                    Button{
-                        Task{
-                            try await viewModel.signInWithApple()
-                        }
-                    } label: {
-                        HStack{
-                            Image("Apple_logo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
-                            
-                            Text("Apple")
-                                .font(.system(size: 14))
-                                .fontWeight(.medium)
-                        }
-                        .foregroundColor(.black)
-                        .frame(width:140, height: 44)
-                        .background(Color.white)
-                        .cornerRadius(8)
-                        
-                    }
-                }
-                
-                Spacer()
-                
-//Sign Up link
-                
-                NavigationLink {
-                    RegistrationView()
-                        .navigationBarBackButtonHidden(true)
-                    
-                } label: {
-                    HStack(spacing: 2){
-                        Text("Dont have an account?")
+                        Text("Or sign in with")
+                            .font(.footnote)
                             .foregroundColor(.secondary)
-                        Text("Sign Up")
-                            .fontWeight(.bold)
-                            .foregroundColor(Color.waterBlue)
+                            .padding(.horizontal, 10)
+                        
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 1)
                     }
-                    .font(.system(size: 14))
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+                    
+// Social sign-in buttons
+                    HStack(spacing: 24) {
+                        // Google button
+                        SocialSignInButton(
+                            imageName: "google_logo",
+                            serviceName: "Google",
+                            action: {
+                                Task {
+                                    try await viewModel.signInWithGoogle()
+                                }
+                            }
+                        )
+                        
+// Apple button
+                        SocialSignInButton(
+                            imageName: "Apple_logo",
+                            serviceName: "Apple",
+                            action: {
+                                Task {
+                                    try await viewModel.signInWithApple()
+                                }
+                            }
+                        )
                     }
-                .padding(.bottom, 16)
+                    
+                    Spacer()
+                    
+// Sign Up link
+                    NavigationLink {
+                        RegistrationView()
+                            .navigationBarBackButtonHidden(true)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Don't have an account?")
+                                .foregroundColor(.secondary)
+                            Text("Sign Up")
+                                .fontWeight(.bold)
+                                .foregroundColor(.waterBlue)
+                        }
+                        .font(.system(size: 15))
+                    }
+                    .padding(.vertical, 20)
+                    .accessibilityLabel("Sign up link")
+                }
+                .padding(.horizontal)
             }
             .background(
                 LinearGradient(
-                    gradient: Gradient(colors: [.white, Color.lightBlue.opacity(0.3)]),
+                    gradient: Gradient(colors: [.white, .lightBlue.opacity(0.3)]),
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea()
             )
-            .sheet(isPresented: $showingPhoneVerification){
-                PhoneVerificationView(phoneNumber: phoneNumber)
-            }
         }
     }
     
-    
-//Email Login Form
+    // Email Login Form
     private var emailLoginForm: some View {
-        VStack(spacing: 20) {
-            InputView(text:$email,
-                      Title: "Email Address",
-                      placeholder: "name@example.com",
-                      isSecureField: false,
-                      iconName: "envelope.fill")
-            .modifier(InputViewModifier())
-                      
-            InputView(text:$password,
-                      Title: "Password",
-                      placeholder: "Enter Your Password",
-                      isSecureField: true)
-                .modifier(InputViewModifier())
+        VStack(spacing: 16) {
+            InputView(
+                text: $email,
+                Title: "Email Address",
+                placeholder: "name@example.com",
+                isSecureField: false,
+                iconName: "envelope.fill"
+            )
+            
+            InputView(
+                text: $password,
+                Title: "Password",
+                placeholder: "Enter your password",
+                isSecureField: true,
+                iconName: "lock.fill"
+            )
         }
-        .padding(.horizontal)
-    }
-    
-    
-//Phone login form
-    private var phoneLoginForm: some View {
-        VStack(spacing: 20) {
-            InputView(text:$phoneNumber,
-                      Title: "Phone Number",
-                      placeholder: "+1234567890",
-                      isSecureField: false)
-            .modifier(InputViewModifier())
-            .keyboardType(.phonePad)
-        }
-        .padding(.horizontal)
+        .padding(.horizontal, 24)
     }
 }
 
+// MARK: - Logo View
+struct LogoView: View {
+    @State private var isAnimating = false
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.waterBlue.opacity(0.1))
+                .frame(width: 140, height: 140)
+                .scaleEffect(isAnimating ? 1.1 : 1.0)
+            
+            Circle()
+                .fill(Color.waterBlue.opacity(0.2))
+                .frame(width: 120, height: 120)
+                .scaleEffect(isAnimating ? 1.2 : 1.0)
+            
+            Image("Hydrate+")
+                .resizable()
+                .scaledToFill()
+                .frame(width: 100, height: 100)
+                .shadow(color: Color.waterBlue.opacity(0.6), radius: isAnimating ? 15 : 10)
+        }
+        .padding(.vertical, 40)
+        .onAppear {
+            withAnimation(Animation.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                isAnimating = true
+            }
+        }
+    }
+}
 
-//MARK: - Authentication form protocol
-extension LoginView: AuthenticationFormProtocol{
+// MARK: - Authentication Form Protocol
+extension LoginView: AuthenticationFormProtocol {
     var formIsValid: Bool {
-        if selectedAuthMethod == .email {
-            return !email.isEmpty && email.contains("@") && !password.isEmpty && password.count > 5
-        }
-        else{
-            return !phoneNumber.isEmpty && phoneNumber.count == 10 && !password.isEmpty && password.count > 5
-        }
+        return !email.isEmpty &&
+               email.contains("@") &&
+               !password.isEmpty &&
+               password.count > 5
     }
 }
 
 #Preview {
     LoginView()
+        .environmentObject(AuthViewModel())
 }

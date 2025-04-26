@@ -55,12 +55,4 @@ struct WaterLogSection: View {
     }
 }
 
-#Preview {
-    WaterLogSection(
-        logs: SampleData.getSampleWaterLogs(), 
-        onViewAll: {},
-        onAddAmount: { _ in }
-    )
-    .padding()
-}
 
