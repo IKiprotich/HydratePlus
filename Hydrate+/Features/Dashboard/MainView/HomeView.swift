@@ -34,17 +34,21 @@ struct HomeView: View {
     @StateObject private var waterViewModel: WaterViewModel
     @State private var showingAddWaterSheet = false
     @State private var animateWave = false
-    @State private var waterConsumed: Double = 0
     @StateObject private var userVM = UserViewModel()
     @ObservedObject var viewModel: WaterViewModel
     @State private var showProfile = false
     @State private var showNotifications = false
+    @State private var bellIconFrame: CGRect = .zero
+    @State private var notifications = [
+        "Drink some water 💧",
+        "You hit your goal yesterday 🎉",
+        "Remember to hydrate today!"
+    ]
 
     init() {
         let userID = Auth.auth().currentUser?.uid ?? ""
         let sharedVM = WaterViewModel(userID: userID)
         _waterViewModel = StateObject(wrappedValue: sharedVM)
-        
         self.viewModel = sharedVM
     }
 
@@ -76,9 +80,7 @@ struct HomeView: View {
                         
                         WaterLogSection(
                             logs: waterViewModel.waterLogs,
-                            onViewAll: {
-                                // TO DO: Navigate to logs view if built
-                            },
+                            onViewAll: {},
                             onAddAmount: { amount in
                                 withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                                     executeTask {
@@ -91,14 +93,36 @@ struct HomeView: View {
                     }
                     .padding(.bottom, 32)
                 }
-                
+
+                // Background tap dismiss
+                if showNotifications {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation {
+                                showNotifications = false
+                            }
+                        }
+
+                    NotificationCardView(notifications: notifications)
+                        .position(
+                            x: bellIconFrame.midX - 100,
+                            y: bellIconFrame.maxY + 12
+                        )
+                        .zIndex(999)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+
+                // Navigation link to profile
                 NavigationLink(destination: ProfileView(), isActive: $showProfile) {
                     EmptyView()
-                }.hidden()
+                }
+                .hidden()
             }
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .top) {
                 HStack {
+                    // Profile Button
                     Button {
                         showProfile = true
                     } label: {
@@ -112,34 +136,37 @@ struct HomeView: View {
                     
                     Spacer()
                     
+                    // App Title
                     Text("Hydrate+")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.deepBlue)
                     
                     Spacer()
                     
+                    // Notifications Button
                     Button {
-                        showNotifications.toggle()
+                        withAnimation {
+                            showNotifications.toggle()
+                        }
                     } label: {
-                        Image(systemName:"bell.badge.fill")
+                        Image(systemName: "bell.badge.fill")
                             .font(.system(size: 18))
                             .foregroundStyle(Color.deepBlue)
                             .padding(8)
                             .background(Color.lightBlue.opacity(0.5))
                             .clipShape(Circle())
                     }
-                    .popover(isPresented: $showNotifications, arrowEdge: .top) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Notifications")
-                                .font(.headline)
-                            Divider()
-                            Text("• Drink some water 💧")
-                            Text("• You hit your goal yesterday 🎉")
-                            Text("• Remember to hydrate today!")
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear
+                                .onAppear {
+                                    bellIconFrame = geo.frame(in: .global)
+                                }
+                                .onChange(of: showNotifications) { _ in
+                                    bellIconFrame = geo.frame(in: .global)
+                                }
                         }
-                        .padding()
-                        .frame(width: 250)
-                    }
+                    )
                 }
                 .padding(.horizontal)
                 .padding(.top, 8)
@@ -173,6 +200,3 @@ struct HomeView: View {
     }
 }
 
-#Preview {
-    HomeView()
-}
