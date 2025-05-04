@@ -24,8 +24,8 @@ enum TimeFrame: String, CaseIterable, Identifiable {
     
     var barCount: Int {
         switch self {
-        case .day: return 6  // 6 time slots in a day
-        case .week: return 7  // 7 days in a week
+        case .day: return 6
+        case .week: return 7 
         case .month: return min(Calendar.current.range(of: .day, in: .month, for: Date())?.count ?? 30, 31)
         }
     }
