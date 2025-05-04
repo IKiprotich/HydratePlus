@@ -9,7 +9,7 @@ import Foundation
 import FirebaseFirestore
 
 struct WaterLog: Identifiable, Codable {
-    @DocumentID var id: String?  // Firestore will handle the document ID automatically
+    @DocumentID var id: String?  
     let amount: Double
     let time: Date
     
