@@ -12,7 +12,7 @@ struct WaterConsumptionData: Equatable {
     let amount: Double
     let label: String
     
-    // For day view - time periods
+    // For day view and time periods
     static let dayPeriods = ["Morning", "Noon", "Afternoon", "Evening", "Night", "Late"]
     
     // Helper to create a formatted label based on date and timeframe
