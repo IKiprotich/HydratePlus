@@ -12,12 +12,11 @@ import FirebaseAuth
 struct LeaderboardUser: Identifiable, Codable {
     @DocumentID var id: String?
     var fullname: String
-    var progress: Int // Percentage of daily goal achieved
+    var progress: Int
     var streak: Int
-    var timestamp: Date // Last updated
+    var timestamp: Date
 
     var isCurrentUser: Bool {
-        // You can compare `id` with `Auth.auth().currentUser?.uid` in the ViewModel
         return id == Auth.auth().currentUser?.uid
     }
 }
