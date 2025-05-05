@@ -33,9 +33,6 @@ struct DailyGoalView: View {
             }
             .navigationTitle("Daily Goal")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         Task {

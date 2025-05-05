@@ -100,8 +100,43 @@ class UserViewModel: ObservableObject {
             self.errorMessage = "Error updating notifications: \(error.localizedDescription)"
         }
     }
+    
+    // TO DO: Implement the following
+    func updateUnits(units: String) async {
+        print("Updating units to: \(units)")
+    }
+    
+    func updateLanguage(language: String) async {
+        print("Updating language to: \(language)")
+    }
+    
+    func logOutFromAllDevices() {
+        print("Logging out from all devices")
+    }
+    
+    func deleteAccount() async {
+        print("Deleting account")
+    }
+    
+    func changePassword(currentPassword: String, newPassword: String) async throws {
+        print("Changing password")
+    }
+
+    
 
     deinit {
         listener?.remove()
     }
 }
+
+
+
+
+
+
+
+
+
+
+    
+   

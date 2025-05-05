@@ -22,6 +22,9 @@ struct User: Identifiable, Codable, Equatable {
     var achievementsCount: Int = 0
     var notificationsEnabled: Bool = true
     var darkModeEnabled: Bool = false
+    var units: String { "Metric (ml)" }
+    var language: String { "English" }
+    var twoFactorEnabled: Bool { false }
     
     // Initialize with required fields only
     init(id: String, fullname: String, email: String) {
