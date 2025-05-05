@@ -42,11 +42,7 @@ struct ProfileView: View {
                             .padding(.vertical, 50)
                     }
 
-// Daily Progress
-                    if let user = userVM.user {
-                        DailyProgressView(dailyGoal: user.dailyGoal, currentIntake: user.currentIntake)
-                            .padding(.vertical, 16)
-                    }
+
 
 // Settings Section
                     ProfileMenuSection(title: "Settings", icon: "gearshape.fill") {
