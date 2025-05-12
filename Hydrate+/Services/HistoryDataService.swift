@@ -8,7 +8,7 @@
 import Foundation
 
 class HistoryDataService {
-    // In a real app, this would fetch from Core Data, UserDefaults, or an API
+
     static func getConsumptionData(for date: Date, timeFrame: TimeFrame) -> [WaterConsumptionData] {
         let calendar = Calendar.current
         var result: [WaterConsumptionData] = []
@@ -18,9 +18,7 @@ class HistoryDataService {
             // For day view, we show 6 time periods
             for i in 0..<6 {
                 let periodLabel = WaterConsumptionData.dayPeriods[i]
-                
-                // Generate sample data - in a real app, this would come from actual logs
-                // More realistic random data that's weighted toward certain times of day
+    
                 var amount: Double
                 switch i {
                 case 0: amount = Double.random(in: 200...400) // Morning
@@ -46,9 +44,6 @@ class HistoryDataService {
             for i in 0..<7 {
                 let day = calendar.date(byAdding: .day, value: i, to: weekStart)!
                 let label = WaterConsumptionData.createLabel(for: date, timeFrame: .week, index: i)
-                
-                // Generate sample data - in a real app, this would come from actual logs
-                // Weekend days tend to have different patterns
                 let isWeekend = calendar.isDateInWeekend(day)
                 let amount = isWeekend ?
                     Double.random(in: 1400...2200) :
@@ -69,9 +64,6 @@ class HistoryDataService {
             for i in 0..<daysInMonth {
                 let day = calendar.date(byAdding: .day, value: i, to: monthStart)!
                 let label = WaterConsumptionData.createLabel(for: date, timeFrame: .month, index: i)
-                
-                // Generate sample data with some patterns
-                // Weekends have different patterns, and we add some randomness
                 let isWeekend = calendar.isDateInWeekend(day)
                 let weekdayFactor = isWeekend ? 0.9 : 1.1
                 let dayOfMonthFactor = 1.0 + (Double(i % 7) / 20.0) // Small cycle through the week
@@ -95,8 +87,6 @@ class HistoryDataService {
         
         for i in 0..<count {
             let date = calendar.date(byAdding: .day, value: -i, to: Date())!
-            
-            // Generate more realistic data with patterns
             let isWeekend = calendar.isDateInWeekend(date)
             let weekdayFactor = isWeekend ? 0.9 : 1.1
             let randomFactor = Double.random(in: 0.85...1.15)

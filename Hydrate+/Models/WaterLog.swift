@@ -9,9 +9,14 @@ import Foundation
 import FirebaseFirestore
 
 struct WaterLog: Identifiable, Codable {
-    @DocumentID var id: String?  
+    @DocumentID var id: String?
     let amount: Double
     let time: Date
+    
+    init(amount: Double, time: Date) {
+        self.amount = amount
+        self.time = time
+    }
     
     var timeFormatted: String {
         let formatter = DateFormatter()

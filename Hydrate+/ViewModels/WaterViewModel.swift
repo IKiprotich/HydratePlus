@@ -14,17 +14,74 @@ class WaterViewModel: ObservableObject {
     @Published var waterLogs: [WaterLog] = []
     @Published var totalConsumed: Double = 0.0
     @Published var todayWaterLogs: [WaterLog] = []
-
+    @Published var currentIntake: Double = 0.0 {
+        didSet {
+            totalConsumed = currentIntake
+        }
+    }
+    
     private var userID: String
     private var db = Firestore.firestore()
-
+    private var lastResetDate: Date?
+    private var userListener: ListenerRegistration?
+    
     init(userID: String) {
         self.userID = userID
+        setupUserListener()
+        Task {
+            await checkAndResetDailyIntake()
+        }
     }
-
+    
+    private func setupUserListener() {
+        userListener?.remove()
+        
+        userListener = db.collection("users").document(userID)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self = self,
+                      let data = snapshot?.data(),
+                      let currentIntake = data["currentIntake"] as? Double else {
+                    return
+                }
+                
+                DispatchQueue.main.async {
+                    self.currentIntake = currentIntake
+                    self.totalConsumed = currentIntake
+                    print("Updated currentIntake and totalConsumed from Firestore: \(currentIntake)")
+                }
+            }
+    }
+    
+    private func checkAndResetDailyIntake() async {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Get the last reset date from Firestore
+        do {
+            let userDoc = try await db.collection("users").document(userID).getDocument()
+            if let lastResetTimestamp = userDoc.data()?["lastResetDate"] as? Timestamp {
+                lastResetDate = lastResetTimestamp.dateValue()
+            }
+            
+            // Only reset if it's a new day and we haven't reset yet
+            if lastResetDate == nil || !calendar.isDate(lastResetDate!, inSameDayAs: today) {
+                try await WaterLogService().resetDailyIntake(forUserID: userID)
+                // Update the last reset date in Firestore
+                try await db.collection("users").document(userID).updateData([
+                    "lastResetDate": Timestamp(date: today)
+                ])
+                lastResetDate = today
+                await fetchLogs() // Refresh the logs after reset
+            }
+        } catch {
+            print("Error checking/resetting daily intake: \(error.localizedDescription)")
+        }
+    }
+    
     // Fetch all water logs from Firebase for the current user filters out today's logs and calculates total consumption
     func fetchLogs() async {
         do {
+            await checkAndResetDailyIntake() // Check for reset before fetching
             let logs = try await WaterLogService().fetchWaterLogs(forUserID: userID)
             self.waterLogs = logs
             let today = Calendar.current.startOfDay(for: Date())
@@ -34,26 +91,26 @@ class WaterViewModel: ObservableObject {
             print("Error fetching water logs: \(error.localizedDescription)")
         }
     }
-
+    
     // Adds a new water log and updates the appropriate state
     func addWater(amount: Double) async {
         let newLog = WaterLog(amount: amount, time: Date())
         do {
+            // First update Firestore through WaterLogService
             try await WaterLogService().addWaterLog(forUserID: userID, log: newLog)
-            waterLogs.insert(newLog, at: 0)
-            let today = Calendar.current.startOfDay(for: Date())
-            if Calendar.current.isDate(newLog.time, inSameDayAs: today) {
-                todayWaterLogs.insert(newLog, at: 0)
-            }
-
-            totalConsumed += amount
+            
+            // Then fetch the latest logs to ensure we have the correct state
+            await fetchLogs()
+            
+            // The userListener will automatically update currentIntake and totalConsumed
+            // when the Firestore document changes
         } catch {
             print("Error adding water log: \(error.localizedDescription)")
         }
     }
-
+    
     // MARK: - Used in HistoryView
-
+    
     // Returns chart data for the selected time frame and date
     func getGroupedData(for date: Date, timeFrame: TimeFrame) -> [WaterConsumptionData] {
         switch timeFrame {
@@ -65,12 +122,12 @@ class WaterViewModel: ObservableObject {
             return getMonthlyTotals(for: date)
         }
     }
-
+    
     // Generates a list of HistoryItem objects for a given timeframe (used in list view)
     func getHistoryItems(for date: Date, timeFrame: TimeFrame, dailyGoal: Double) -> [HistoryItem] {
         let calendar = Calendar.current
         var items: [HistoryItem] = []
-
+        
         switch timeFrame {
         case .day:
             let logs = waterLogs.filter { calendar.isDate($0.time, inSameDayAs: date) }
@@ -78,7 +135,7 @@ class WaterViewModel: ObservableObject {
             if total > 0 {
                 items.append(HistoryItem(date: date, totalAmount: total, dailyGoal: dailyGoal))
             }
-
+            
         case .week:
             guard let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: date)?.start else { return [] }
             for i in 0..<7 {
@@ -89,11 +146,11 @@ class WaterViewModel: ObservableObject {
                     items.append(HistoryItem(date: day, totalAmount: total, dailyGoal: dailyGoal))
                 }
             }
-
+            
         case .month:
             guard let range = calendar.range(of: .day, in: .month, for: date),
                   let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: date)) else { return [] }
-
+            
             for day in range {
                 if let dayDate = calendar.date(byAdding: .day, value: day - 1, to: monthStart) {
                     let logs = waterLogs.filter { calendar.isDate($0.time, inSameDayAs: dayDate) }
@@ -104,41 +161,41 @@ class WaterViewModel: ObservableObject {
                 }
             }
         }
-
+        
         return items
     }
-
+    
     // MARK: - Chart Data Helpers
-
+    
     // Returns water totals for each day of the selected week
     private func getDailyTotals(for referenceDate: Date) -> [WaterConsumptionData] {
         let calendar = Calendar.current
         guard let weekStart = calendar.dateInterval(of: .weekOfYear, for: referenceDate)?.start else { return [] }
-
+        
         var result: [WaterConsumptionData] = []
-
+        
         for offset in 0..<7 {
             if let currentDate = calendar.date(byAdding: .day, value: offset, to: weekStart) {
                 let dailyLogs = waterLogs.filter {
                     calendar.isDate($0.time, inSameDayAs: currentDate)
                 }
                 let totalAmount = dailyLogs.reduce(0) { $0 + $1.amount }
-
+                
                 let weekdayIndex = calendar.component(.weekday, from: currentDate) - 1
                 let label = calendar.shortWeekdaySymbols[weekdayIndex]
-
+                
                 result.append(WaterConsumptionData(date: currentDate, amount: totalAmount, label: label))
             }
         }
-
+        
         return result
     }
-
+    
     // Splits a day into 6 slots (4-hour chunks) and returns consumption per slot
     private func getTimeSlotTotals(for date: Date) -> [WaterConsumptionData] {
         var slotTotals = Array(repeating: 0.0, count: 6)
         let calendar = Calendar.current
-
+        
         for log in waterLogs {
             if calendar.isDate(log.time, inSameDayAs: date) {
                 let hour = calendar.component(.hour, from: log.time)
@@ -148,18 +205,18 @@ class WaterViewModel: ObservableObject {
                 }
             }
         }
-
+        
         return slotTotals.enumerated().map { index, totalAmount in
             WaterConsumptionData(date: date, amount: totalAmount, label: "\(index * 4)-\(index * 4 + 4)")
         }
     }
-
+    
     // Calculates water totals for each day of the selected month
     private func getMonthlyTotals(for date: Date) -> [WaterConsumptionData] {
         let calendar = Calendar.current
         guard let range = calendar.range(of: .day, in: .month, for: date),
               let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: date)) else { return [] }
-
+        
         return range.map { day in
             if let currentDate = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth) {
                 let logs = waterLogs.filter { calendar.isDate($0.time, inSameDayAs: currentDate) }
@@ -168,5 +225,8 @@ class WaterViewModel: ObservableObject {
             }
             return WaterConsumptionData(date: date, amount: 0.0, label: "\(day)")
         }
+    }
+    
+    deinit {
     }
 }

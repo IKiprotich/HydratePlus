@@ -9,98 +9,105 @@ import SwiftUI
 import Firebase
 import FirebaseAuth
 
-
-
 struct LeaderboardView: View {
     @StateObject private var viewModel = LeaderboardViewModel()
-
+    
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                // Debug: Display user count
-                Text("Users count: \(viewModel.users.count)")
-                    .font(.caption)
-                    .foregroundColor(.red)
-
-                List {
-                    Section(header: Text("Leaderboard")) {
-                        ForEach(Array(viewModel.users.enumerated()), id: \.element.id) { index, user in
-                            HStack(spacing: 16) {
-                                Text("\(index + 1)")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                                    .frame(width: 30)
-
-                                if let imageUrl = user.profileImageUrl {
-                                    AsyncImage(url: URL(string: imageUrl)) { image in
-                                        image.resizable().scaledToFit()
-                                    } placeholder: {
-                                        Image(systemName: "person.circle.fill")
-                                    }
-                                    .frame(width: 36, height: 36)
-                                    .foregroundColor(getRankColor(rank: index + 1))
-                                } else {
-                                    Image(systemName: "person.circle.fill")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 36, height: 36)
-                                        .foregroundColor(getRankColor(rank: index + 1))
-                                }
-
-                                VStack(alignment: .leading) {
-                                    Text(user.fullname)
-                                        .font(.headline)
-                                    Text("\(Int(user.currentIntake))ml total intake")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-
-                                Spacer()
-
-                                Text("\(user.streakDays) days")
-                                    .font(.subheadline)
-                                    .foregroundColor(.blue)
-                            }
-                            .padding(.vertical, 4)
-                            .background(user.id == Auth.auth().currentUser?.uid ? Color.waterBlue.opacity(0.1) : Color.clear)
-                            .cornerRadius(8)
-                        }
-                    }
-                }
-                .listStyle(InsetGroupedListStyle())
-            }
-            .background(
+            ZStack {
+                // Background gradient
                 LinearGradient(
-                    gradient: Gradient(colors: [.white, Color.lightBlue.opacity(0.2)]),
+                    gradient: Gradient(colors: [
+                        Color(red: 0.95, green: 0.95, blue: 1.0),
+                        Color(red: 0.9, green: 0.95, blue: 1.0)
+                    ]),
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .edgesIgnoringSafeArea(.all)
-            )
-            .navigationTitle("Leaderboard")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        // Invite action
-                    } label: {
-                        Image(systemName: "person.badge.plus")
-                            .foregroundColor(Color.waterBlue)
+                .ignoresSafeArea()
+                
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                } else if let error = viewModel.errorMessage {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundColor(.red)
+                        Text(error)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.red)
+                            .padding()
+                        Button("Retry") {
+                            Task {
+                                await viewModel.refreshLeaderboard()
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                } else {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            ForEach(Array(viewModel.entries.enumerated()), id: \.element.id) { index, entry in
+                                LeaderboardRow(rank: index + 1, entry: entry)
+                            }
+                        }
+                        .padding()
+                    }
+                    .refreshable {
+                        await viewModel.refreshLeaderboard()
                     }
                 }
             }
-            .onAppear {
-                print("Current user: \(Auth.auth().currentUser?.uid ?? "None")")
-                viewModel.loadLeaderboard()
-            }
+            .navigationTitle("Leaderboard")
         }
     }
+}
 
-    private func getRankColor(rank: Int) -> Color {
+struct LeaderboardRow: View {
+    let rank: Int
+    let entry: LeaderboardEntry
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Rank
+            Text("\(rank)")
+                .font(.headline)
+                .foregroundColor(.secondary)
+                .frame(width: 30)
+            
+            // Trophy icon for top 3
+            if rank <= 3 {
+                Image(systemName: "trophy.fill")
+                    .foregroundColor(rankColor)
+                    .font(.title2)
+            }
+            
+            // User info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(entry.name)
+                    .font(.headline)
+                Text("\(Int(entry.totalConsumed))ml")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
+    }
+    
+    private var rankColor: Color {
         switch rank {
-        case 1: return Color.yellow
-        case 2: return Color.gray
-        case 3: return Color.brown
-        default: return Color.gray
+        case 1: return Color(red: 1.0, green: 0.84, blue: 0.0) // Gold
+        case 2: return Color(red: 0.75, green: 0.75, blue: 0.75) // Silver
+        case 3: return Color(red: 0.8, green: 0.5, blue: 0.2) // Bronze
+        default: return .clear
         }
     }
 }

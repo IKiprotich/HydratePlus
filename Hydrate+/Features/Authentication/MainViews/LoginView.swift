@@ -17,14 +17,15 @@ struct LoginView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-// Logo with animation
+                    // Logo with animation
                     LogoView()
+                        .frame(height: 200)
                     
-// Input fields for email login
+                    // Input fields for email login
                     emailLoginForm
                         .padding(.vertical, 10)
                     
-// Remember me and forgot password
+                    // Remember me and forgot password
                     HStack {
                         Button(action: {
                             rememberMe.toggle()
@@ -43,7 +44,7 @@ struct LoginView: View {
                         
                         Spacer()
                         
-// Forgot password link
+                        // Forgot password link
                         Button {
                             // TODO: Implement forgot password functionality
                         } label: {
@@ -56,7 +57,7 @@ struct LoginView: View {
                     }
                     .padding(.horizontal, 24)
                     
-// Sign In Button
+                    // Sign In Button
                     Button {
                         Task {
                             try await viewModel.signIn(withEmail: email, password: password)
@@ -68,7 +69,8 @@ struct LoginView: View {
                             Image(systemName: "arrow.right.circle.fill")
                                 .font(.system(size: 16))
                         }
-                        .frame(width: UIScreen.main.bounds.width - 48, height: 54)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
                     }
                     .foregroundColor(.white)
                     .background(
@@ -82,10 +84,11 @@ struct LoginView: View {
                     .shadow(color: .waterBlue.opacity(0.4), radius: 6, x: 0, y: 3)
                     .disabled(!formIsValid)
                     .opacity(formIsValid ? 1.0 : 0.6)
+                    .padding(.horizontal, 24)
                     .padding(.top, 10)
                     .accessibilityLabel("Sign in button")
                     
-// Divider with text
+                    // Divider with text
                     HStack {
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
@@ -103,7 +106,7 @@ struct LoginView: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 16)
                     
-// Social sign-in buttons
+                    // Social sign-in buttons
                     HStack(spacing: 24) {
                         // Google button
                         SocialSignInButton(
@@ -116,7 +119,7 @@ struct LoginView: View {
                             }
                         )
                         
-// Apple button
+                        // Apple button
                         SocialSignInButton(
                             imageName: "Apple_logo",
                             serviceName: "Apple",
@@ -130,7 +133,7 @@ struct LoginView: View {
                     
                     Spacer()
                     
-// Sign Up link
+                    // Sign Up link
                     NavigationLink {
                         RegistrationView()
                             .navigationBarBackButtonHidden(true)
@@ -147,7 +150,7 @@ struct LoginView: View {
                     .padding(.vertical, 20)
                     .accessibilityLabel("Sign up link")
                 }
-                .padding(.horizontal)
+                .padding(.vertical)
             }
             .background(
                 LinearGradient(
@@ -192,22 +195,21 @@ struct LogoView: View {
             Circle()
                 .fill(Color.waterBlue.opacity(0.1))
                 .frame(width: 140, height: 140)
-                .scaleEffect(isAnimating ? 1.1 : 1.0)
+                .scaleEffect(isAnimating ? 1.05 : 1.0)
             
             Circle()
                 .fill(Color.waterBlue.opacity(0.2))
                 .frame(width: 120, height: 120)
-                .scaleEffect(isAnimating ? 1.2 : 1.0)
+                .scaleEffect(isAnimating ? 1.1 : 1.0)
             
             Image("Hydrate+")
                 .resizable()
-                .scaledToFill()
+                .scaledToFit()
                 .frame(width: 100, height: 100)
-                .shadow(color: Color.waterBlue.opacity(0.6), radius: isAnimating ? 15 : 10)
+                .shadow(color: Color.waterBlue.opacity(0.6), radius: isAnimating ? 10 : 8)
         }
-        .padding(.vertical, 40)
         .onAppear {
-            withAnimation(Animation.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+            withAnimation(Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
                 isAnimating = true
             }
         }

@@ -17,7 +17,7 @@ struct User: Identifiable, Codable, Equatable {
     var memberSince: Date = Date()
     var isPremium: Bool = false
     var dailyGoal: Double = 2000
-    var currentIntake: Double
+    var currentIntake: Double = 0
     var streakDays: Int = 0
     var achievementsCount: Int = 0
     var notificationsEnabled: Bool = true
@@ -37,8 +37,8 @@ struct User: Identifiable, Codable, Equatable {
     
     // Initialize with all fields (for preview and testing)
     init(id: String, email: String, fullname: String, profileImageUrl: String? = nil,
-         memberSince: Date = Date(), isPremium: Bool = false, dailyGoal: Double = 2000,currenIntake: Double = 0,
-         streakDays: Int = 0, achievementsCount: Int = 0, notificationsEnabled: Bool = true,
+         memberSince: Date = Date(), isPremium: Bool = false, dailyGoal: Double = 2000,
+         currentIntake: Double = 0, streakDays: Int = 0, achievementsCount: Int = 0, notificationsEnabled: Bool = true,
          darkModeEnabled: Bool = false) {
         self.id = id
         self.email = email
@@ -47,7 +47,7 @@ struct User: Identifiable, Codable, Equatable {
         self.memberSince = memberSince
         self.isPremium = isPremium
         self.dailyGoal = dailyGoal
-        self.currentIntake = currenIntake
+        self.currentIntake = currentIntake
         self.streakDays = streakDays
         self.achievementsCount = achievementsCount
         self.notificationsEnabled = notificationsEnabled

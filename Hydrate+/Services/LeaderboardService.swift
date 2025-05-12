@@ -1,5 +1,5 @@
 //
-//  LeaderboardViewModel.swift
+//  LeaderboardService.swift
 //  Hydrate+
 //
 //  Created by Ian   on 24/04/2025.
@@ -9,45 +9,39 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-class LeaderboardViewModel: ObservableObject {
-    @Published var users: [User] = []
+class LeaderboardService {
+    private let db = Firestore.firestore()
 
-    func loadLeaderboard() {
-        guard let currentUserID = Auth.auth().currentUser?.uid else {
-            print("User not authenticated")
+    func fetchTopUsers(limit: Int = 20, completion: @escaping ([User]) -> Void) {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            print("No authenticated user found.")
+            completion([])
             return
         }
 
-        let db = Firestore.firestore()
         db.collection("users")
             .order(by: "currentIntake", descending: true)
+            .limit(to: limit)
             .getDocuments { snapshot, error in
                 if let error = error {
                     print("Error fetching leaderboard: \(error.localizedDescription)")
-                    return
-                }
-                print("Documents found: \(snapshot?.documents.count ?? 0)")
-                snapshot?.documents.forEach { doc in
-                    print("Document data: \(doc.data())")
-                }
-
-                guard let documents = snapshot?.documents else {
-                    print("No users found")
+                    completion([])
                     return
                 }
 
-                self.users = documents.compactMap { doc in
+                let users: [User] = snapshot?.documents.compactMap { doc in
                     let data = doc.data()
                     return User(
                         id: doc.documentID,
                         email: data["email"] as? String ?? "",
                         fullname: data["fullname"] as? String ?? "Unknown",
                         profileImageUrl: data["profileImageUrl"] as? String,
-                        currenIntake: data["currentIntake"] as? Double ?? 0,
+                        currentIntake: data["currentIntake"] as? Double ?? 0,
                         streakDays: data["streakDays"] as? Int ?? 0
                     )
-                }
-                print("Parsed users: \(self.users.map { $0.fullname })")
+                } ?? []
+
+                completion(users)
             }
     }
 }
