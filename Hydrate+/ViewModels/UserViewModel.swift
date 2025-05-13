@@ -85,6 +85,19 @@ class UserViewModel: ObservableObject {
         }
     }
 
+    func updateDailyAverage(_ average: Double) async {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            self.errorMessage = "No user is currently logged in."
+            return
+        }
+
+        do {
+            try await db.collection("users").document(uid).updateData(["dailyAverage": average])
+        } catch {
+            self.errorMessage = "Error updating daily average: \(error.localizedDescription)"
+        }
+    }
+
     func updateNotifications(enabled: Bool) async {
         guard let uid = Auth.auth().currentUser?.uid else {
             self.errorMessage = "No user is currently logged in."

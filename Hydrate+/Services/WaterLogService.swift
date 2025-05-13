@@ -10,16 +10,12 @@ import FirebaseFirestore
 struct WaterLogService {
     func fetchWaterLogs(forUserID userID: String) async throws -> [WaterLog] {
         let db = Firestore.firestore()
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: Date())
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
 
         let snapshot = try await db
             .collection("users")
             .document(userID)
             .collection("waterLogs")
-            .whereField("time", isGreaterThanOrEqualTo: Timestamp(date: startOfDay))
-            .whereField("time", isLessThan: Timestamp(date: endOfDay))
+            .order(by: "time", descending: true)
             .getDocuments()
 
         return snapshot.documents.compactMap { doc in

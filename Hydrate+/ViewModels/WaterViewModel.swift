@@ -19,17 +19,22 @@ class WaterViewModel: ObservableObject {
             totalConsumed = currentIntake
         }
     }
+    @Published var currentStreak: Int = 0
+    @Published var dailyAverage: Double = 0.0
     
     private var userID: String
     private var db = Firestore.firestore()
     private var lastResetDate: Date?
     private var userListener: ListenerRegistration?
+    private var streakData: StreakData?
     
     init(userID: String) {
         self.userID = userID
         setupUserListener()
         Task {
             await checkAndResetDailyIntake()
+            await fetchStreakData()
+            await calculateDailyAverage()
         }
     }
     
@@ -96,9 +101,9 @@ class WaterViewModel: ObservableObject {
         let newLog = WaterLog(amount: amount, time: Date())
         do {
             try await WaterLogService().addWaterLog(forUserID: userID, log: newLog)
-            
             await fetchLogs()
-            
+            await updateStreak()
+            await calculateDailyAverage()
         } catch {
             print("Error adding water log: \(error.localizedDescription)")
         }
@@ -219,6 +224,86 @@ class WaterViewModel: ObservableObject {
                 return WaterConsumptionData(date: date, amount: totalAmount, label: "\(day)")
             }
             return WaterConsumptionData(date: date, amount: 0.0, label: "\(day)")
+        }
+    }
+    
+    private func fetchStreakData() async {
+        do {
+            let streakDoc = try await db.collection("users").document(userID).collection("streak").document("current").getDocument()
+            
+            if let streakData = try? streakDoc.data(as: StreakData.self) {
+                self.streakData = streakData
+                self.currentStreak = streakData.currentStreak
+            }
+        } catch {
+            print("Error fetching streak data: \(error.localizedDescription)")
+        }
+    }
+    
+    // This updates the streak with logic
+    
+    private func updateStreak() async {
+        do {
+            let streakDoc = try await db.collection("users").document(userID).collection("streak").document("current").getDocument()
+            var streakData = try? streakDoc.data(as: StreakData.self) ?? StreakData()
+            
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            
+            if let lastUpdated = streakData?.lastUpdated,
+               !calendar.isDate(lastUpdated, inSameDayAs: today) {
+                
+                if totalConsumed >= streakData?.dailyGoal ?? 2000 {
+                    streakData?.currentStreak += 1
+                } else {
+                    streakData?.currentStreak = 0
+                }
+                
+                streakData?.lastUpdated = today
+                
+                try await db.collection("users").document(userID).collection("streak").document("current").setData([
+                    "currentStreak": streakData?.currentStreak ?? 0,
+                    "lastUpdated": Timestamp(date: today),
+                    "dailyGoal": streakData?.dailyGoal ?? 2000
+                ])
+                
+                self.currentStreak = streakData?.currentStreak ?? 0
+            }
+        } catch {
+            print("Error updating streak: \(error.localizedDescription)")
+        }
+    }
+    
+    private func calculateDailyAverage() async {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: today)!
+        
+        do {
+            let logs = try await WaterLogService().fetchWaterLogs(forUserID: userID)
+            let recentLogs = logs.filter { $0.time >= sevenDaysAgo }
+            
+            // Group logs by day
+            var dailyTotals: [Date: Double] = [:]
+            for log in recentLogs {
+                let day = calendar.startOfDay(for: log.time)
+                dailyTotals[day, default: 0] += log.amount
+            }
+            
+            // Calculate average
+            if !dailyTotals.isEmpty {
+                let total = dailyTotals.values.reduce(0, +)
+                self.dailyAverage = total / Double(dailyTotals.count)
+                
+                // Update the user's daily average in Firestore
+                try await db.collection("users").document(userID).updateData([
+                    "dailyAverage": self.dailyAverage
+                ])
+            } else {
+                self.dailyAverage = 0
+            }
+        } catch {
+            print("Error calculating daily average: \(error.localizedDescription)")
         }
     }
     
