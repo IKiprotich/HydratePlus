@@ -10,6 +10,7 @@ import FirebaseFirestore
 import AuthenticationServices
 import FirebaseCore
 import GoogleSignIn
+import Network
 
 
 
@@ -30,60 +31,60 @@ class AuthViewModel: ObservableObject{
     }
      
     //sign in
-    func signIn(withEmail email: String, password: String) async throws{
+    func signIn(withEmail email: String, password: String) async throws {
         do {
             let result = try await Auth.auth().signIn(withEmail: email, password: password)
             self.userSession = result.user
             await fetchUser()
-        }catch{
+        } catch {
+            self.errorMessage = error.localizedDescription
             print("DEBUG: Failed to log in user with error \(error.localizedDescription)")
+            throw error
         }
-        
     }
     
     //create user
-    func createUser(withEmail email: String, password: String, fullname: String)async throws{
+    func createUser(withEmail email: String, password: String, fullname: String) async throws {
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
             self.userSession = result.user
-            let user = User(id: result.user.uid, fullname: fullname, email: email )
             
-            let encodedUser = try Firestore.Encoder().encode(user)
-            try await Firestore.firestore().collection("users").document(result.user.uid).setData(encodedUser)
-            await fetchUser()
-        }
-        catch{
-            print("DEBUG: Failed to create user with error \(error.localizedDescription)")
-        }
-        
-    }
-    
-    //create user in firestore
-    func createUserInFirestore(uid: String, fullname: String, email: String) {
-        let user = User(id: uid, fullname: fullname, email: email)
-        let db = Firestore.firestore()
+            // Create user document in Firestore with direct data
+            let userData: [String: Any] = [
+                "id": result.user.uid,
+                "email": email,
+                "fullname": fullname,
+                "currentIntake": 0,
+                "streakDays": 0,
+                "memberSince": FieldValue.serverTimestamp(),
+                "dailyGoal": 2000,
+                "isPremium": false
+            ]
+            
 
-        do {
-            try db.collection("users").document(uid).setData(from: user)
-        } catch {
-            print("Error writing user to Firestore: \(error)")
-        }
-    }
-
-    
-    //saving user info to firestore
-    func saveUserToFirestore(uid: String, name: String, email: String) {
-        let db = Firestore.firestore()
-        db.collection("users").document(uid).setData([
-            "name": name,
-            "email": email,
-            "createdAt": Timestamp()
-        ]) { error in
-            if let error = error {
-                print("Error writing user to Firestore: \(error.localizedDescription)")
-            } else {
-                print("User data successfully written!")
+            var retryCount = 0
+            let maxRetries = 3
+            
+            while retryCount < maxRetries {
+                do {
+                    try await Firestore.firestore().collection("users").document(result.user.uid).setData(userData)
+                    await fetchUser()
+                    return
+                } catch {
+                    retryCount += 1
+                    if retryCount == maxRetries {
+                        // If Firestore fails, delete the Firebase Auth user
+                        try? await result.user.delete()
+                        self.errorMessage = "Failed to create user profile. Please try again."
+                        throw error
+                    }
+                    try await Task.sleep(nanoseconds: UInt64(pow(2.0, Double(retryCount)) * 1_000_000_000))
+                }
             }
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("DEBUG: Failed to create user with error \(error.localizedDescription)")
+            throw error
         }
     }
     
@@ -101,7 +102,7 @@ class AuthViewModel: ObservableObject{
     //sign in using phone number
     func signInWithPhoneNumber(phoneNumber: String) {
         
-        PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { // i'll need to imprve this in the future as this is a simplified flow
+        PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { // i'll need to improve this in the future as this is a simplified flow
             verificationID, error in
             if let error = error {
                 print("DEBUG: Failed to start phone number auth \(error.localizedDescription)")
@@ -159,8 +160,6 @@ class AuthViewModel: ObservableObject{
             // Sign in with Firebase
             let authResult = try await Auth.auth().signIn(with: credential)
             self.userSession = authResult.user
-
-            // Create or update user document in Firestore
             let fullname = result.user.profile?.name ?? "Unknown"
             let email = result.user.profile?.email ?? ""
             let user = User(id: authResult.user.uid, fullname: fullname, email: email)
@@ -189,9 +188,9 @@ class AuthViewModel: ObservableObject{
     //sign out
     func signOut(){
         do{
-            try Auth.auth().signOut()//signs out user in the backend
-            self.userSession = nil//wipes out user session and takes us back to login screen
-            self.currentUser = nil//wipes out current users data model
+            try Auth.auth().signOut()
+            self.userSession = nil
+            self.currentUser = nil
         }
         catch{
             print("DEBUG: failed to sing out the user")

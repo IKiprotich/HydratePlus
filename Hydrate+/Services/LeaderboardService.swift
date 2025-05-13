@@ -12,9 +12,15 @@ import FirebaseAuth
 class LeaderboardService {
     private let db = Firestore.firestore()
 
-    func fetchTopUsers(limit: Int = 20, completion: @escaping ([LeaderboardUser]) -> Void) {
+    func fetchTopUsers(limit: Int = 20, completion: @escaping ([User]) -> Void) {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            print("No authenticated user found.")
+            completion([])
+            return
+        }
+
         db.collection("users")
-            .order(by: "progress", descending: true)
+            .order(by: "currentIntake", descending: true)
             .limit(to: limit)
             .getDocuments { snapshot, error in
                 if let error = error {
@@ -23,8 +29,16 @@ class LeaderboardService {
                     return
                 }
 
-                let users = snapshot?.documents.compactMap { document in
-                    try? document.data(as: LeaderboardUser.self)
+                let users: [User] = snapshot?.documents.compactMap { doc in
+                    let data = doc.data()
+                    return User(
+                        id: doc.documentID,
+                        email: data["email"] as? String ?? "",
+                        fullname: data["fullname"] as? String ?? "Unknown",
+                        profileImageUrl: data["profileImageUrl"] as? String,
+                        currentIntake: data["currentIntake"] as? Double ?? 0,
+                        streakDays: data["streakDays"] as? Int ?? 0
+                    )
                 } ?? []
 
                 completion(users)

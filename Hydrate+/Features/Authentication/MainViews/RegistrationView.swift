@@ -42,6 +42,7 @@ struct RegistrationView: View {
     @State private var confirmPassword = ""
     @State private var agreeToTerms = false
     @State private var showingPasswordRequirements = false
+    @State private var showValidationFeedback = false
     
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: AuthViewModel
@@ -84,6 +85,7 @@ struct RegistrationView: View {
                 
 // Sign Up Button
                 Button {
+                    showValidationFeedback = true
                     Task {
                         try await viewModel.createUser(
                             withEmail: email,
@@ -114,6 +116,52 @@ struct RegistrationView: View {
                 .opacity((formIsValid && agreeToTerms) ? 1.0 : 0.6)
                 .padding(.vertical, 10)
                 .accessibilityLabel("Create account button")
+                
+                if showValidationFeedback {
+                    VStack(alignment: .leading, spacing: 8) {
+                        if email.isEmpty || !email.contains("@") {
+                            Text("• Please enter a valid email address")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        if fullname.isEmpty {
+                            Text("• Please enter your full name")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        if password.isEmpty || password.count < 6 {
+                            Text("• Password must be at least 6 characters")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        if !password.contains(where: { $0.isUppercase }) {
+                            Text("• Password must contain an uppercase letter")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        if !password.contains(where: { $0.isNumber }) {
+                            Text("• Password must contain a number")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        if !password.contains(where: { "!@#$%^&*()_+-=[]{}|;:,.<>?".contains($0) }) {
+                            Text("• Password must contain a special character")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        if password != confirmPassword {
+                            Text("• Passwords do not match")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        if !agreeToTerms {
+                            Text("• Please agree to the Terms of Service")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
                 
 // Divider with text
                 HStack {
@@ -217,23 +265,6 @@ struct RegistrationView: View {
                 isSecureField: true,
                 iconName: "lock.fill"
             )
-            .overlay(
-                Group {
-                    if !password.isEmpty {
-                        HStack {
-                            Spacer()
-                            Button(action: {
-                                showingPasswordRequirements = true
-                            }) {
-                                Image(systemName: "info.circle")
-                                    .foregroundColor(.waterBlue)
-                                    .padding(.trailing, 12)
-                            }
-                            .accessibilityLabel("Password requirements info")
-                        }
-                    }
-                }
-            )
             
             ZStack(alignment: .trailing) {
                 InputView(
@@ -245,19 +276,20 @@ struct RegistrationView: View {
                 )
                 
                 if !password.isEmpty && !confirmPassword.isEmpty {
-                    if password == confirmPassword {
-                        Image(systemName: "checkmark.circle.fill")
-                            .imageScale(.large)
-                            .fontWeight(.bold)
-                            .foregroundColor(.green)
-                            .padding(.trailing, 12)
-                    } else {
-                        Image(systemName: "xmark.circle.fill")
-                            .imageScale(.large)
-                            .fontWeight(.bold)
-                            .foregroundColor(.red)
-                            .padding(.trailing, 12)
+                    HStack(spacing: 8) {
+                        if password == confirmPassword {
+                            Image(systemName: "checkmark.circle.fill")
+                                .imageScale(.large)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
+                        } else {
+                            Image(systemName: "xmark.circle.fill")
+                                .imageScale(.large)
+                                .fontWeight(.bold)
+                                .foregroundColor(.red)
+                        }
                     }
+                    .padding(.trailing, 40)
                 }
             }
         }

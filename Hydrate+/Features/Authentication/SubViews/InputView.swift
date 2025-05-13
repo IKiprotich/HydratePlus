@@ -8,8 +8,6 @@
 import SwiftUI
 
 // Placeholder UIHelpers to handle keyboard dismissal
-
-
 struct InputView: View {
     @Binding var text: String
     let Title: String
@@ -73,6 +71,8 @@ struct InputView: View {
                     UITextField.appearance().clearButtonMode = .whileEditing
                 }
                 
+                Spacer(minLength: 8)
+                
 // Show/hide password button for secure fields
                 if isSecureField && !text.isEmpty {
                     Button(action: {
@@ -81,7 +81,7 @@ struct InputView: View {
                         Image(systemName: isSecureTextVisible ? "eye.slash.fill" : "eye.fill")
                             .foregroundColor(.waterBlue.opacity(0.7))
                             .font(.system(size: 14))
-                            .padding(.trailing, 8)
+                            .frame(width: 20)
                     }
                 }
             }
@@ -119,11 +119,9 @@ struct InputView: View {
             isEditing = true
         }
         .onAppear {
-            // Add tap gesture recognizer to dismiss keyboard
             UIHelpers.addKeyboardDismissGesture()
         }
         .onChange(of: text) { _ in
-            // Keep editing state true while typing
             if !text.isEmpty {
                 isEditing = true
             }
@@ -176,5 +174,4 @@ struct InputView: View {
     }
     .padding()
     .background(Color.white)
-    .previewLayout(.sizeThatFits)
 }

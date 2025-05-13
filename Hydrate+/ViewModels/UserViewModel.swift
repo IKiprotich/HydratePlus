@@ -67,7 +67,6 @@ class UserViewModel: ObservableObject {
                 "profileImageUrl": profileImageUrl.isEmpty ? nil : profileImageUrl
             ]
             try await db.collection("users").document(uid).updateData(data)
-            // Snapshot listener will automatically update self.user
         } catch {
             self.errorMessage = "Error updating user: \(error.localizedDescription)"
         }
@@ -81,7 +80,6 @@ class UserViewModel: ObservableObject {
 
         do {
             try await db.collection("users").document(uid).updateData(["dailyGoal": goal])
-            // Snapshot listener will automatically update self.user
         } catch {
             self.errorMessage = "Error updating daily goal: \(error.localizedDescription)"
         }
@@ -95,7 +93,6 @@ class UserViewModel: ObservableObject {
 
         do {
             try await db.collection("users").document(uid).updateData(["notificationsEnabled": enabled])
-            // Snapshot listener will automatically update self.user
         } catch {
             self.errorMessage = "Error updating notifications: \(error.localizedDescription)"
         }
