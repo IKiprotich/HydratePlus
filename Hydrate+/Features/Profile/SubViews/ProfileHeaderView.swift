@@ -70,7 +70,21 @@ struct ProfileHeaderView: View {
                         .foregroundStyle(Color.secondary)
                 }
                 
-            
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: 1, height: 30)
+                
+                VStack {
+                    Text("\(Int(user.dailyAverage))")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.blue)
+                    
+                    Text("Daily Average")
+                        .font(.caption)
+                        .foregroundStyle(Color.secondary)
+                }
+                
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
                     .frame(width: 1, height: 30)

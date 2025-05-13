@@ -75,8 +75,11 @@ struct HomeView: View {
                         )
                         .padding(.horizontal)
                         
-                        StatsSection(streak: 0, dailyAverage: "0")
-                            .padding(.horizontal)
+                        StatsSection(
+                            streak: waterViewModel.currentStreak,
+                            dailyAverage: waterViewModel.dailyAverage
+                        )
+                        .padding(.horizontal)
                         
                         WaterLogSection(
                             logs: waterViewModel.waterLogs,
