@@ -46,8 +46,6 @@ class LeaderboardViewModel: ObservableObject {
                 self.entries = documents.compactMap { document in
                     let data = document.data()
                     print("Processing document \(document.documentID) with data: \(data)")
-                    
-                    // Use currentIntake consistently
                     let fullname = data["fullname"] as? String ?? data["name"] as? String ?? "Anonymous"
                     let currentIntake = data["currentIntake"] as? Double ?? 0.0
                     
@@ -76,8 +74,6 @@ class LeaderboardViewModel: ObservableObject {
             entries = snapshot.documents.compactMap { document in
                 let data = document.data()
                 print("Processing document \(document.documentID) with data: \(data)")
-                
-                // More flexible data handling
                 let fullname = data["fullname"] as? String ?? data["name"] as? String ?? "Anonymous"
                 let currentIntake = data["currentIntake"] as? Double ?? data["waterIntake"] as? Double ?? 0.0
                 

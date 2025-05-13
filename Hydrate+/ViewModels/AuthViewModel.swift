@@ -61,7 +61,7 @@ class AuthViewModel: ObservableObject{
                 "isPremium": false
             ]
             
-            // Add retry logic for Firestore operation
+
             var retryCount = 0
             let maxRetries = 3
             
@@ -78,7 +78,6 @@ class AuthViewModel: ObservableObject{
                         self.errorMessage = "Failed to create user profile. Please try again."
                         throw error
                     }
-                    // Wait before retrying (exponential backoff)
                     try await Task.sleep(nanoseconds: UInt64(pow(2.0, Double(retryCount)) * 1_000_000_000))
                 }
             }
@@ -103,7 +102,7 @@ class AuthViewModel: ObservableObject{
     //sign in using phone number
     func signInWithPhoneNumber(phoneNumber: String) {
         
-        PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { // i'll need to imprve this in the future as this is a simplified flow
+        PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { // i'll need to improve this in the future as this is a simplified flow
             verificationID, error in
             if let error = error {
                 print("DEBUG: Failed to start phone number auth \(error.localizedDescription)")
@@ -161,8 +160,6 @@ class AuthViewModel: ObservableObject{
             // Sign in with Firebase
             let authResult = try await Auth.auth().signIn(with: credential)
             self.userSession = authResult.user
-
-            // Create or update user document in Firestore
             let fullname = result.user.profile?.name ?? "Unknown"
             let email = result.user.profile?.email ?? ""
             let user = User(id: authResult.user.uid, fullname: fullname, email: email)
@@ -191,9 +188,9 @@ class AuthViewModel: ObservableObject{
     //sign out
     func signOut(){
         do{
-            try Auth.auth().signOut()//signs out user in the backend
-            self.userSession = nil//wipes out user session and takes us back to login screen
-            self.currentUser = nil//wipes out current users data model
+            try Auth.auth().signOut()
+            self.userSession = nil
+            self.currentUser = nil
         }
         catch{
             print("DEBUG: failed to sing out the user")

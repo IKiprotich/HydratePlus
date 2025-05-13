@@ -20,7 +20,6 @@ struct ChartBar: View {
     
     var body: some View {
         VStack(spacing: 6) {
-            // Amount label
             Text("\(Int(amount))")
                 .font(.system(size: 10))
                 .foregroundStyle(Color.secondary)
@@ -45,7 +44,7 @@ struct ChartBar: View {
                 )
                 .shadow(color: Color.blue.opacity(0.2), radius: 2, x: 0, y: 2)
             
-            // Day/date label
+
             Text(label)
                 .font(.caption)
                 .foregroundStyle(Color.secondary)

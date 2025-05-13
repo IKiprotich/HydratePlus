@@ -26,7 +26,7 @@ struct User: Identifiable, Codable, Equatable {
     var language: String { "English" }
     var twoFactorEnabled: Bool { false }
     
-    // Initialize with required fields only
+ 
     init(id: String, fullname: String, email: String) {
         self.id = id
         self.fullname = fullname
@@ -35,7 +35,7 @@ struct User: Identifiable, Codable, Equatable {
         self.currentIntake = 0
     }
     
-    // Initialize with all fields (for preview and testing)
+    // (for preview and testing)
     init(id: String, email: String, fullname: String, profileImageUrl: String? = nil,
          memberSince: Date = Date(), isPremium: Bool = false, dailyGoal: Double = 2000,
          currentIntake: Double = 0, streakDays: Int = 0, achievementsCount: Int = 0, notificationsEnabled: Bool = true,

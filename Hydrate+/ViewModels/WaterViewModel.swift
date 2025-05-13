@@ -63,15 +63,14 @@ class WaterViewModel: ObservableObject {
                 lastResetDate = lastResetTimestamp.dateValue()
             }
             
-            // Only reset if it's a new day and we haven't reset yet
+            // this only resets if it's a new day and we haven't reset yet
             if lastResetDate == nil || !calendar.isDate(lastResetDate!, inSameDayAs: today) {
                 try await WaterLogService().resetDailyIntake(forUserID: userID)
-                // Update the last reset date in Firestore
                 try await db.collection("users").document(userID).updateData([
                     "lastResetDate": Timestamp(date: today)
                 ])
                 lastResetDate = today
-                await fetchLogs() // Refresh the logs after reset
+                await fetchLogs()
             }
         } catch {
             print("Error checking/resetting daily intake: \(error.localizedDescription)")
@@ -81,7 +80,7 @@ class WaterViewModel: ObservableObject {
     // Fetch all water logs from Firebase for the current user filters out today's logs and calculates total consumption
     func fetchLogs() async {
         do {
-            await checkAndResetDailyIntake() // Check for reset before fetching
+            await checkAndResetDailyIntake()
             let logs = try await WaterLogService().fetchWaterLogs(forUserID: userID)
             self.waterLogs = logs
             let today = Calendar.current.startOfDay(for: Date())
@@ -96,14 +95,10 @@ class WaterViewModel: ObservableObject {
     func addWater(amount: Double) async {
         let newLog = WaterLog(amount: amount, time: Date())
         do {
-            // First update Firestore through WaterLogService
             try await WaterLogService().addWaterLog(forUserID: userID, log: newLog)
             
-            // Then fetch the latest logs to ensure we have the correct state
             await fetchLogs()
             
-            // The userListener will automatically update currentIntake and totalConsumed
-            // when the Firestore document changes
         } catch {
             print("Error adding water log: \(error.localizedDescription)")
         }

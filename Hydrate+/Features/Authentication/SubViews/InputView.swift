@@ -119,11 +119,9 @@ struct InputView: View {
             isEditing = true
         }
         .onAppear {
-            // Add tap gesture recognizer to dismiss keyboard
             UIHelpers.addKeyboardDismissGesture()
         }
         .onChange(of: text) { _ in
-            // Keep editing state true while typing
             if !text.isEmpty {
                 isEditing = true
             }

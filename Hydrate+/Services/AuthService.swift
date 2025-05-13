@@ -55,10 +55,10 @@ class AuthService: ObservableObject {
     }
     
     func signUp(email: String, password: String, fullname: String) async throws {
-        // Create user in Firebase Auth
+        // Creates a user in Firebase Auth
         let authResult = try await createAuthUser(email: email, password: password)
         
-        // Create user document in Firestore
+        // Creates the user document in Firestore
         try await createUserDocument(userId: authResult.user.uid, email: email, fullname: fullname)
     }
     

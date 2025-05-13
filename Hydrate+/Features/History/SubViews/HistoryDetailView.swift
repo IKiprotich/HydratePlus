@@ -20,10 +20,9 @@ struct HistoryDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // Summary card
                 summaryCard
                 
-                // Logs list
+
                 logsListSection
             }
             .padding(.vertical)
@@ -44,13 +43,11 @@ struct HistoryDetailView: View {
     
     private var summaryCard: some View {
         VStack(spacing: 16) {
-            // Date
             Text(date, style: .date)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundStyle(Color.blue)
             
-            // Progress circle
             ProgressCircleView(
                 progress: progress,
                 size: 160,
@@ -68,7 +65,6 @@ struct HistoryDetailView: View {
             }
             .padding(.vertical, 10)
             
-            // Summary stats
             HStack(spacing: 20) {
                 StatBox(
                     title: "Goal",

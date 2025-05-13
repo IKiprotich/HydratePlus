@@ -30,19 +30,19 @@ struct WaterLogService {
     func addWaterLog(forUserID userID: String, log: WaterLog) async throws {
         let db = Firestore.firestore()
         
-        // Start a batch write
+        // Starts a batch write
         let batch = db.batch()
         
-        // Create a new document with a unique ID
+        // Creates a new document with a unique ID
         let waterLogRef = db.collection("users").document(userID).collection("waterLogs").document()
         
-        // Add the water log
+        // Adds the water log
         batch.setData([
             "amount": log.amount,
             "time": Timestamp(date: log.time)
         ], forDocument: waterLogRef)
         
-        // Get current user document
+        // Gets current user document
         let userRef = db.collection("users").document(userID)
         let userDoc = try await userRef.getDocument()
         let currentIntake = userDoc.data()?["currentIntake"] as? Double ?? 0.0
@@ -56,7 +56,7 @@ struct WaterLogService {
         print("Successfully added water log and updated currentIntake to: \(currentIntake + log.amount)")
     }
 
-    // Add a function to reset daily intake
+    // this function resets the daily intake
     func resetDailyIntake(forUserID userID: String) async throws {
         let db = Firestore.firestore()
         let calendar = Calendar.current
@@ -75,7 +75,7 @@ struct WaterLogService {
         try await db.collection("users").document(userID).updateData([
             "currentIntake": 0.0,
             "lastResetDate": Timestamp(date: today),
-            "totalIntake": FieldValue.increment(currentIntake) // Add to total intake
+            "totalIntake": FieldValue.increment(currentIntake)
         ])
     }
 }

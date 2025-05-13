@@ -21,18 +21,18 @@ class WaterIntakeService: ObservableObject {
         let intakeRef = db.collection("users").document(userId)
             .collection("waterIntake").document(today.formatted(date: .numeric, time: .omitted))
         
-        // Get current intake for today
+        // Gets current intake for today
         let currentDoc = try await intakeRef.getDocument()
         let currentIntake = currentDoc.exists ? (currentDoc.data()?["amount"] as? Double ?? 0) : 0
         
-        // Update today's intake
+        // Updates today's intake
         try await intakeRef.setData([
             "amount": currentIntake + amount,
             "lastUpdated": FieldValue.serverTimestamp(),
             "date": today
         ], merge: true)
         
-        // Update user's total intake
+        // Updates user's total intake
         try await db.collection("users").document(userId).updateData([
             "currentIntake": FieldValue.increment(amount)
         ])
