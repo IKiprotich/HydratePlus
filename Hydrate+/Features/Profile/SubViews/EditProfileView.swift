@@ -59,7 +59,7 @@ struct EditProfileView: View {
             memberSince: Date(),
             isPremium: true,
             dailyGoal: 2000,
-            currenIntake: 14,
+            currentIntake: 14,
             streakDays: 7,
             achievementsCount: 1200,
             notificationsEnabled: true

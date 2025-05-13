@@ -35,7 +35,6 @@ struct HistoryView: View {
                     onNext: moveDateForward
                 )
 
-                // Use .constant and compute the grouped data directly
                 WaterConsumptionChart(
                     data: viewModel.getGroupedData(for: selectedDate, timeFrame: selectedTimeFrame),
                     dailyGoal: dailyGoal,

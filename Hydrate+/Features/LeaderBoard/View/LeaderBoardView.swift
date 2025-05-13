@@ -7,203 +7,108 @@
 
 import SwiftUI
 import Firebase
+import FirebaseAuth
 
 struct LeaderboardView: View {
-    @State private var selectedTimeFrame: TimeFrame = .week
-    @State private var selectedScope: LeaderboardScope = .friends
     @StateObject private var viewModel = LeaderboardViewModel()
-    
-    enum TimeFrame: String, CaseIterable, Identifiable {
-        case day = "Day"
-        case week = "Week"
-        case month = "Month"
-        
-        var id: String { self.rawValue }
-    }
-    
-    enum LeaderboardScope: String, CaseIterable, Identifiable {
-        case friends = "Friends"
-        case region = "Region"
-        case global = "Global"
-        
-        var id: String { self.rawValue }
-    }
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                Picker("Time Frame", selection: $selectedTimeFrame) {
-                    ForEach(TimeFrame.allCases) { timeFrame in
-                        Text(timeFrame.rawValue).tag(timeFrame)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
-                
-                Picker("Scope", selection: $selectedScope) {
-                    ForEach(LeaderboardScope.allCases) { scope in
-                        Text(scope.rawValue).tag(scope)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
-                
-                // Top 3 Users Placeholder (optional: update with real data logic later)
-                if viewModel.users.count >= 3 {
-                    HStack(alignment: .bottom, spacing: 0) {
-                        leaderboardTopUser(user: viewModel.users[1], rank: 2, color: .gray)
-                        leaderboardTopUser(user: viewModel.users[0], rank: 1, color: .yellow)
-                            .offset(y: -20)
-                        leaderboardTopUser(user: viewModel.users[2], rank: 3, color: .brown)
-                    }
-                    .padding(.top, 30)
-                    .padding(.bottom, 10)
-                }
-
-                List {
-                    Section(header: Text("Leaderboard")) {
-                        ForEach(Array(viewModel.users.enumerated()), id: \.element.id) { index, user in
-                            HStack(spacing: 16) {
-                                Text("\(index + 1)")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                                    .frame(width: 30)
-                                
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 36, height: 36)
-                                    .foregroundColor(getRankColor(rank: index + 1))
-                                
-                                VStack(alignment: .leading) {
-                                    Text(user.fullname)
-                                        .font(.headline)
-                                    
-                                    Text("\(user.progress)% of daily goals")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                Text("\(user.streak) days")
-                                    .font(.subheadline)
-                                    .foregroundColor(.blue)
-                            }
-                            .padding(.vertical, 4)
-                            .background(user.isCurrentUser ? Color.waterBlue.opacity(0.1) : Color.clear)
-                            .cornerRadius(8)
-                        }
-                    }
-                }
-                .listStyle(InsetGroupedListStyle())
-            }
-            .background(
+            ZStack {
+                // Background gradient
                 LinearGradient(
-                    gradient: Gradient(colors: [.white, Color.lightBlue.opacity(0.2)]),
+                    gradient: Gradient(colors: [
+                        Color(red: 0.95, green: 0.95, blue: 1.0),
+                        Color(red: 0.9, green: 0.95, blue: 1.0)
+                    ]),
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .edgesIgnoringSafeArea(.all)
-            )
-            .navigationTitle("Leaderboard")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        // Invite action
-                    } label: {
-                        Image(systemName: "person.badge.plus")
-                            .foregroundColor(Color.waterBlue)
+                .ignoresSafeArea()
+                
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                } else if let error = viewModel.errorMessage {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundColor(.red)
+                        Text(error)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.red)
+                            .padding()
+                        Button("Retry") {
+                            Task {
+                                await viewModel.refreshLeaderboard()
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                } else {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            ForEach(Array(viewModel.entries.enumerated()), id: \.element.id) { index, entry in
+                                LeaderboardRow(rank: index + 1, entry: entry)
+                            }
+                        }
+                        .padding()
+                    }
+                    .refreshable {
+                        await viewModel.refreshLeaderboard()
                     }
                 }
             }
-            .onAppear {
-                viewModel.loadLeaderboard()
-            }
+            .navigationTitle("Leaderboard")
         }
     }
+}
+
+struct LeaderboardRow: View {
+    let rank: Int
+    let entry: LeaderboardEntry
     
-    private func leaderboardTopUser(user: LeaderboardUser, rank: Int, color: Color) -> some View {
-        VStack {
-            if rank == 1 {
-                Image(systemName: "crown.fill")
-                    .foregroundColor(Color.yellow)
-                    .offset(y: -10)
-            }
-            
-            Image(systemName: "person.circle.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: rank == 1 ? 70 : 50, height: rank == 1 ? 70 : 50)
-                .foregroundColor(color)
-                .padding(10)
-                .background(Color.white)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(color, lineWidth: rank == 1 ? 3 : 2))
-            
-            Text(user.fullname)
-                .font(.subheadline)
-                .fontWeight(.medium)
-            
-            Text("\(user.progress)%")
-                .font(.caption)
+    var body: some View {
+        HStack(spacing: 16) {
+            // Rank
+            Text("\(rank)")
+                .font(.headline)
                 .foregroundColor(.secondary)
+                .frame(width: 30)
             
-            Rectangle()
-                .fill(
-                    rank == 1 ?
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color.yellow, Color.orange]),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        :
-                        LinearGradient(
-                            gradient: Gradient(colors: [color, color]),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                )
-                .frame(width: 80, height: CGFloat(100 + (3 - rank) * 20))
-                .cornerRadius(8, corners: [.topLeft, .topRight])
-                .overlay(
-                    Text("\(rank)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                )
-
+            // Trophy icon for top 3
+            if rank <= 3 {
+                Image(systemName: "trophy.fill")
+                    .foregroundColor(rankColor)
+                    .font(.title2)
+            }
+            
+            // User info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(entry.name)
+                    .font(.headline)
+                Text("\(Int(entry.totalConsumed))ml")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
         }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
     }
     
-    private func getRankColor(rank: Int) -> Color {
+    private var rankColor: Color {
         switch rank {
-        case 1: return Color.yellow
-        case 2: return Color.gray
-        case 3: return Color.brown
-        default: return Color.gray
+        case 1: return Color(red: 1.0, green: 0.84, blue: 0.0) // Gold
+        case 2: return Color(red: 0.75, green: 0.75, blue: 0.75) // Silver
+        case 3: return Color(red: 0.8, green: 0.5, blue: 0.2) // Bronze
+        default: return .clear
         }
-    }
-}
-
-// Extension for specific corner radius
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape(RoundedCornerShape(radius: radius, corners: corners))
-    }
-}
-
-struct RoundedCornerShape: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
     }
 }
 

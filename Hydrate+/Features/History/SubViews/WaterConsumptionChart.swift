@@ -21,13 +21,10 @@ struct WaterConsumptionChart: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Chart header
             chartHeader
             
-            // Chart content
             chartContent
             
-            // Legend
             chartLegend
         }
         .padding()
@@ -42,7 +39,6 @@ struct WaterConsumptionChart: View {
             }
         }
         .onChange(of: data) { _ in
-            // Reset animation when data changes
             animateChart = false
             withAnimation(.easeOut(duration: 0.8)) {
                 animateChart = true
@@ -68,14 +64,12 @@ struct WaterConsumptionChart: View {
     
     private var chartContent: some View {
         ZStack(alignment: .trailing) {
-            // Goal line
             GoalLineView(
                 goalValue: dailyGoal,
                 maxValue: maxValue,
                 maxHeight: maxHeight
             )
             
-            // Chart bars
             chartBars
         }
         .frame(height: maxHeight)
