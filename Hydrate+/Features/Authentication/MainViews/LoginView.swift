@@ -206,10 +206,14 @@ struct LogoView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 100, height: 100)
-                .shadow(color: Color.waterBlue.opacity(0.6), radius: isAnimating ? 10 : 8)
+                .shadow(color: Color.waterBlue.opacity(0.6), radius: isAnimating ? 8 : 6)
         }
         .onAppear {
-            withAnimation(Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+            withAnimation(
+                Animation
+                    .easeInOut(duration: 1.5)
+                    .repeatForever(autoreverses: true)
+            ) {
                 isAnimating = true
             }
         }

@@ -9,12 +9,12 @@ import SwiftUI
 import Firebase
 import GoogleSignIn
 
-
-
 @main
 struct Hydrate_App: App {
     @StateObject var authViewModel = AuthViewModel()
-    init(){
+    @StateObject private var reminderService = WaterReminderService()
+    
+    init() {
         FirebaseApp.configure()
         
         // Configure Google Sign-In
@@ -22,12 +22,18 @@ struct Hydrate_App: App {
             GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
         }
     }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(authViewModel)
+                .environmentObject(reminderService)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
+                }
+                .onAppear {
+                    // Start hourly reminders when app launches
+                    reminderService.startHourlyReminders()
                 }
         }
     }

@@ -45,5 +45,5 @@ struct StatBox: View {
     )
     .frame(width: 150)
     .padding()
-    .previewLayout(.sizeThatFits)
+    
 }

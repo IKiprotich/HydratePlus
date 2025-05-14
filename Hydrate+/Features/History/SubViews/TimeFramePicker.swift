@@ -25,5 +25,5 @@ struct TimeFramePicker: View {
     @State var selectedTimeFrame: TimeFrame = .week
     return TimeFramePicker(selectedTimeFrame: $selectedTimeFrame)
         .padding()
-        .previewLayout(.sizeThatFits)
+        
 }

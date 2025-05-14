@@ -45,5 +45,5 @@ struct WaterLogDetailItem: View {
         log: WaterLog(amount: 350, time: Date())
     )
     .padding()
-    .previewLayout(.sizeThatFits)
+    
 }

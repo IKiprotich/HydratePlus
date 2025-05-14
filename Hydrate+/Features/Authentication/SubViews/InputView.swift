@@ -16,14 +16,15 @@ struct InputView: View {
     var iconName: String? = nil
     @State private var isEditing = false
     @State private var isSecureTextVisible = false
+    @FocusState private var isFocused: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-// Title with icon
+            // Title with icon
             HStack(spacing: 6) {
                 if let iconName = iconName {
                     Image(systemName: iconName)
-                        .foregroundColor(.waterBlue)
+                        .foregroundColor(isEditing ? .waterBlue : .gray)
                         .font(.system(size: 14))
                 }
                 
@@ -34,7 +35,7 @@ struct InputView: View {
                     .animation(.easeInOut(duration: 0.2), value: isEditing)
             }
             
-// Input field
+            // Input field
             HStack(spacing: 10) {
                 if let iconName = iconName {
                     Image(systemName: iconName)
@@ -44,61 +45,46 @@ struct InputView: View {
                         .animation(.easeInOut(duration: 0.2), value: isEditing)
                 }
                 
-// Text field with dynamic secure entry
-                Group {
-                    if isSecureField {
-                        Group {
-                            if isSecureTextVisible {
-                                TextField(placeholder, text: $text)
-                            } else {
-                                SecureField(placeholder, text: $text)
-                            }
-                        }
-                        .onTapGesture {
-                            isEditing = true
-                        }
-                    } else {
+                if isSecureField {
+                    if isSecureTextVisible {
                         TextField(placeholder, text: $text)
-                            .onTapGesture {
-                                isEditing = true
-                            }
+                            .textContentType(.password)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                            .focused($isFocused)
+                    } else {
+                        SecureField(placeholder, text: $text)
+                            .textContentType(.password)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                            .focused($isFocused)
                     }
-                }
-                .font(.system(size: 16))
-                .foregroundColor(.primary)
-                .padding(.vertical, 12)
-                .onAppear {
-                    UITextField.appearance().clearButtonMode = .whileEditing
-                }
-                
-                Spacer(minLength: 8)
-                
-// Show/hide password button for secure fields
-                if isSecureField && !text.isEmpty {
+                    
                     Button(action: {
                         isSecureTextVisible.toggle()
                     }) {
                         Image(systemName: isSecureTextVisible ? "eye.slash.fill" : "eye.fill")
-                            .foregroundColor(.waterBlue.opacity(0.7))
-                            .font(.system(size: 14))
-                            .frame(width: 20)
+                            .foregroundColor(.gray)
                     }
+                } else {
+                    TextField(placeholder, text: $text)
+                        .textContentType(Title.lowercased().contains("email") ? .emailAddress : .name)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                        .focused($isFocused)
                 }
             }
-            .padding(.horizontal, 12)
+            .padding()
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.white)
-                    .shadow(color: isEditing ? .waterBlue.opacity(0.2) : .black.opacity(0.05), radius: isEditing ? 4 : 2, x: 0, y: isEditing ? 2 : 1)
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.1))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isEditing ? .blue : .blue.opacity(0.2), lineWidth: isEditing ? 1.5 : 1)
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isEditing ? Color.waterBlue : Color.clear, lineWidth: 1)
             )
-            .animation(.easeInOut(duration: 0.2), value: isEditing)
-            .frame(height: 50)
             
-    // Password strength indicator
+            // Password strength indicator
             if !text.isEmpty && isSecureField {
                 HStack {
                     Text(passwordStrength)
@@ -115,8 +101,10 @@ struct InputView: View {
                 .padding(.top, 2)
             }
         }
-        .onTapGesture {
-            isEditing = true
+        .onChange(of: isFocused) { newValue in
+            withAnimation {
+                isEditing = newValue
+            }
         }
         .onAppear {
             UIHelpers.addKeyboardDismissGesture()
@@ -128,7 +116,7 @@ struct InputView: View {
         }
     }
     
-// Password strength indicator
+    // Password strength indicator
     private var passwordStrength: String {
         guard isSecureField && !text.isEmpty else { return "" }
         

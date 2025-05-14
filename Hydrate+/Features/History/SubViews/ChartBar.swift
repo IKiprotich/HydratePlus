@@ -66,5 +66,5 @@ struct ChartBar: View {
     )
     .frame(width: 60)
     .padding()
-    .previewLayout(.sizeThatFits)
+
 }

@@ -57,5 +57,5 @@ struct DateNavigator: View {
         onNext: {}
     )
     .padding()
-    .previewLayout(.sizeThatFits)
+    
 }

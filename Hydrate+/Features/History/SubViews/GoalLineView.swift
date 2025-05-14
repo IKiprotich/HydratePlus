@@ -36,5 +36,5 @@ struct GoalLineView: View {
     GoalLineView(goalValue: 2000, maxValue: 3000, maxHeight: 200)
         .frame(height: 200)
         .background(Color.gray.opacity(0.1))
-        .previewLayout(.sizeThatFits)
+        
 }

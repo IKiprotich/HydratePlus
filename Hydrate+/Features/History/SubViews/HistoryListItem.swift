@@ -74,5 +74,5 @@ struct HistoryListItem: View {
         )
     )
     .padding()
-    .previewLayout(.sizeThatFits)
+    
 }

@@ -43,6 +43,9 @@ struct RegistrationView: View {
     @State private var agreeToTerms = false
     @State private var showingPasswordRequirements = false
     @State private var showValidationFeedback = false
+    @State private var keyboardHeight: CGFloat = 0
+    @State private var isLoading = false
+    @State private var showError = false
     
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: AuthViewModel
@@ -86,36 +89,62 @@ struct RegistrationView: View {
 // Sign Up Button
                 Button {
                     showValidationFeedback = true
+                    isLoading = true
                     Task {
-                        try await viewModel.createUser(
-                            withEmail: email,
-                            password: password,
-                            fullname: fullname
-                        )
+                        do {
+                            try await viewModel.createUser(
+                                withEmail: email,
+                                password: password,
+                                fullname: fullname
+                            )
+                        } catch {
+                            showError = true
+                        }
+                        isLoading = false
                     }
                 } label: {
                     HStack {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .padding(.trailing, 8)
+                        }
                         Text("Create Account")
                             .fontWeight(.semibold)
-                        Image(systemName: "person.crop.circle.badge.plus")
-                            .font(.system(size: 16))
+                        if !isLoading {
+                            Image(systemName: "person.crop.circle.badge.plus")
+                                .font(.system(size: 16))
+                        }
                     }
                     .frame(width: UIScreen.main.bounds.width - 48, height: 54)
                 }
                 .foregroundColor(.white)
                 .background(
-                    LinearGradient(
-                        gradient: Gradient(colors: [.waterBlue, .waterBlue.opacity(0.8)]),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
+                    Group {
+                        if formIsValid && agreeToTerms {
+                            LinearGradient(
+                                gradient: Gradient(colors: [.waterBlue, .waterBlue.opacity(0.8)]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        } else {
+                            Color.gray.opacity(0.3)
+                        }
+                    }
                 )
                 .cornerRadius(12)
-                .shadow(color: .waterBlue.opacity(0.4), radius: 6, x: 0, y: 3)
-                .disabled(!formIsValid || !agreeToTerms)
-                .opacity((formIsValid && agreeToTerms) ? 1.0 : 0.6)
+                .shadow(color: (formIsValid && agreeToTerms) ? .waterBlue.opacity(0.4) : .clear, radius: 6, x: 0, y: 3)
+                .disabled(!formIsValid || !agreeToTerms || isLoading)
                 .padding(.vertical, 10)
                 .accessibilityLabel("Create account button")
+                
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.caption)
+                        .padding(.horizontal, 24)
+                        .transition(.opacity)
+                }
                 
                 if showValidationFeedback {
                     VStack(alignment: .leading, spacing: 8) {
@@ -225,6 +254,7 @@ struct RegistrationView: View {
                 .accessibilityLabel("Sign in link")
             }
             .padding(.horizontal)
+            .padding(.bottom, keyboardHeight)
         }
         .background(
             LinearGradient(
@@ -237,6 +267,41 @@ struct RegistrationView: View {
         .sheet(isPresented: $showingPasswordRequirements) {
             PasswordRequirementsView()
         }
+        .onAppear {
+            setupKeyboardObservers()
+        }
+        .onDisappear {
+            removeKeyboardObservers()
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(viewModel.errorMessage ?? "An error occurred while creating your account. Please try again.")
+        }
+    }
+    
+    private func setupKeyboardObservers() {
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillShowNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                keyboardHeight = keyboardFrame.height
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            keyboardHeight = 0
+        }
+    }
+    
+    private func removeKeyboardObservers() {
+        NotificationCenter.default.removeObserver(self)
     }
     
 // Email Registration Form

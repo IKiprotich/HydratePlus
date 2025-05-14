@@ -51,6 +51,4 @@ struct StatsSection: View {
 
 #Preview {
     StatsSection(streak: 3, dailyAverage: 1850)
-        .padding()
-        .previewLayout(.sizeThatFits)
 }

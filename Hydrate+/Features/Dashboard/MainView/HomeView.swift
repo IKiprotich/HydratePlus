@@ -39,11 +39,7 @@ struct HomeView: View {
     @State private var showProfile = false
     @State private var showNotifications = false
     @State private var bellIconFrame: CGRect = .zero
-    @State private var notifications = [
-        "Drink some water 💧",
-        "You hit your goal yesterday 🎉",
-        "Remember to hydrate today!"
-    ]
+    @StateObject private var notificationService = NotificationService()
 
     init() {
         let userID = Auth.auth().currentUser?.uid ?? ""
@@ -107,9 +103,9 @@ struct HomeView: View {
                             }
                         }
 
-                    NotificationCardView(notifications: notifications)
+                    NotificationCardView(notificationService: notificationService)
                         .position(
-                            x: bellIconFrame.midX - 100,
+                            x: bellIconFrame.midX - 150,
                             y: bellIconFrame.maxY + 12
                         )
                         .zIndex(999)
@@ -152,14 +148,27 @@ struct HomeView: View {
                             showNotifications.toggle()
                         }
                     } label: {
-                        Image(systemName: "bell.badge.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(Color.deepBlue)
-                            .padding(8)
-                            .background(Color.lightBlue.opacity(0.5))
-                            .clipShape(Circle())
+                        ZStack {
+                            Image(systemName: "bell.badge.fill")
+                                .font(.system(size: 18))
+                                .foregroundStyle(Color.deepBlue)
+                                .padding(8)
+                                .background(Color.lightBlue.opacity(0.5))
+                                .clipShape(Circle())
+                            
+                            if notificationService.unreadCount > 0 {
+                                Text("\(notificationService.unreadCount)")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.white)
+                                    .padding(4)
+                                    .background(.red)
+                                    .clipShape(Circle())
+                                    .offset(x: 8, y: -8)
+                            }
+                        }
                     }
-                    .background(
+                    .overlay(
                         GeometryReader { geo in
                             Color.clear
                                 .onAppear {
@@ -181,6 +190,7 @@ struct HomeView: View {
             .onAppear {
                 executeTask {
                     await waterViewModel.fetchLogs()
+                    try? await notificationService.fetchNotifications()
                 }
                 withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
                     animateWave = true
