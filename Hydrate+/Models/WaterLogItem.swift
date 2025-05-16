@@ -1,9 +1,30 @@
+
 //
 //  WaterLogItem.swift
 //  Hydrate+
 //
 //  Created by Ian   on 11/04/2025.
 //
+
+
+/*
+ * WaterLogItem.swift
+ * 
+ * A SwiftUI view component that displays individual water intake log entries in the Hydrate+ app.
+ * This component renders a single water log entry with:
+ * - A water drop icon
+ * - The amount of water consumed in milliliters
+ * - The time of consumption
+ * - An edit button for modifying the entry
+ * 
+ * The component is styled with a clean, modern design featuring:
+ * - Circular icons with subtle backgrounds
+ * - Card-like appearance with shadow
+ * - Clear typography hierarchy
+ * - Interactive edit functionality
+ */
+
+
 
 import SwiftUI
 

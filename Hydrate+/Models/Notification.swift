@@ -1,9 +1,16 @@
+
 //
 //  Notification.swift
 //  Hydrate+
 //
 //  Created by Ian   on 14/05/2025.
 //
+
+// This file defines the notification system for Hydrate+, an app that helps users track their water intake.
+// The HydrateNotification struct represents different types of notifications (achievements, reminders, milestones, and system messages)
+// that users receive while using the app. Each notification includes a title, message, type, timestamp, and read status.
+// The NotificationType enum defines the different categories of notifications along with their associated icons and colors
+// for visual representation in the app's UI.
 
 import Foundation
 import FirebaseFirestore

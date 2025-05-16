@@ -5,6 +5,22 @@
 //  Created by Ian   on 09/04/2025.
 //
 
+/*
+ * User.swift
+ * Hydrate+
+ *
+ * This file defines the core User model for the Hydrate+ app, which manages user data and preferences
+ * for water intake tracking. The User struct implements Identifiable, Codable, and Equatable protocols
+ * to support SwiftUI views, data persistence, and comparison operations.
+ *
+ * Key features:
+ * - Basic user information (id, email, name, profile image)
+ * - Water intake tracking (daily goal, current intake, daily average)
+ * - User preferences (units, language, dark mode, notifications)
+ * - Premium features and achievements tracking
+ * - Streak tracking for consistent water intake
+ */
+
 import Foundation
 
 struct User: Identifiable, Codable, Equatable {

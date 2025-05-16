@@ -5,6 +5,20 @@
 //  Created by Ian   on 11/04/2025.
 //
 
+/*
+ * WaterLog.swift
+ * 
+ * This model represents a single water intake entry in the Hydrate+ app.
+ * It stores the amount of water consumed (in milliliters) and the timestamp
+ * of when the water was logged. The model conforms to Identifiable and Codable
+ * protocols to support unique identification and data persistence.
+ * 
+ * Key features:
+ * - Tracks water intake amount and time
+ * - Provides formatted time display
+ * - Integrates with Firebase Firestore for cloud storage
+ */
+
 import Foundation
 import FirebaseFirestore
 

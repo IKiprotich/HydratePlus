@@ -7,6 +7,18 @@
 
 import Foundation
 
+/*
+ * TimeFrame represents the different time periods for tracking and displaying hydration data in Hydrate+.
+ * It provides functionality for:
+ * - Day: Shows hourly water intake for the current day
+ * - Week: Displays daily water intake for the past week
+ * - Month: Shows daily water intake for the current month
+ *
+ * Each time frame includes:
+ * - A corresponding Calendar.Component for date calculations
+ * - The number of bars to display in charts/visualizations
+ */
+
 enum TimeFrame: String, CaseIterable, Identifiable {
     case day = "Day"
     case week = "Week"
