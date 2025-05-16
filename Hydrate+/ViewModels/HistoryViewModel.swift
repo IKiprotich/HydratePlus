@@ -1,9 +1,25 @@
+
 //
 //  HistoryViewModel.swift
 //  Hydrate+
 //
 //  Created by Ian   on 22/04/2025.
 //
+
+/*
+ * HistoryViewModel.swift
+ * 
+ * This file is a crucial component of the Hydrate+ app that manages the water consumption history
+ * functionality. It serves as the ViewModel layer that:
+ * 
+ * 1. Fetches and maintains real-time water consumption logs from Firebase Firestore
+ * 2. Provides filtered access to water logs for specific dates
+ * 3. Handles the data transformation between Firestore and the app's data models
+ * 
+ * The ViewModel uses Firebase Authentication to ensure user-specific data access
+ * and implements real-time updates through Firestore's snapshot listener.
+ */
+
 
 import Foundation
 import FirebaseFirestore

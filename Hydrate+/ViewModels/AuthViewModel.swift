@@ -1,9 +1,37 @@
+
 //
 //  AuthViewModel.swift
 //  Hydrate+
 //
 //  Created by Ian   on 09/04/2025.
 //
+
+/*
+ * AuthViewModel.swift
+ * 
+ * This file serves as the core authentication and user management system for the Hydrate+ app.
+ * It handles all user-related operations including:
+ * - User authentication (email/password, Google Sign-In, Phone authentication)
+ * - User registration and profile creation
+ * - Session management
+ * - Real-time user data synchronization with Firebase
+ * 
+ * The ViewModel implements the @MainActor protocol to ensure all UI updates
+ * happen on the main thread, and uses @Published properties to enable
+ * reactive UI updates through SwiftUI.
+ * 
+ * Key Features:
+ * - Secure user authentication through Firebase Auth
+ * - User profile management in Firestore
+ * - Error handling and validation
+ * - Session persistence
+ * - Multi-provider authentication support
+ */
+
+
+
+
+
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
