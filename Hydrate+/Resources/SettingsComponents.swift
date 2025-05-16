@@ -4,6 +4,22 @@
 //
 //  Created by Ian   on 05/05/2025.
 //
+/*
+ * SettingsComponents.swift
+ * 
+ * This file contains reusable SwiftUI components for building settings screens in the Hydrate+ app.
+ * It provides consistent styling and layout for settings UI elements including:
+ * 
+ * - SettingsSection: A container view that groups related settings with a title
+ * - SettingsInfoRow: A row displaying a key-value pair of information
+ * - SettingsButtonRow: A tappable row with an icon for navigation or actions
+ * 
+ * The components use the app's visual design system with:
+ * - Consistent spacing and padding
+ * - Custom background styling with shadows
+ * - Typography hierarchy
+ * - Accessibility support through semantic content shapes
+ */
 
 import SwiftUI
 

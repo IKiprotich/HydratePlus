@@ -1,9 +1,23 @@
+
 //
 //  ColorExtensions.swift
 //  Hydrate+
 //
 //  Created by Ian   on 09/04/2025.
 //
+
+/*
+ * ColorExtensions.swift
+ * 
+ * A Swift extension that defines custom colors used throughout the Hydrate+ app.
+ * This file contains color definitions for:
+ * - Water-related colors (waterBlue, deepBlue, lightBlue)
+ * - Status indicator colors (validGreen, warningOrange, errorRed)
+ * 
+ * These colors are used to maintain consistent theming and visual feedback
+ * across the application's user interface.
+ */
+
 
 import SwiftUI
 
