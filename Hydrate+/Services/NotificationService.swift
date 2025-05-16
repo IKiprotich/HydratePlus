@@ -5,6 +5,26 @@
 //  Created by Ian   on 14/05/2025.
 //
 
+/*
+ * NotificationService.swift
+ * 
+ * This service is a crucial component of Hydrate+ that manages all notification-related functionality.
+ * It handles:
+ * - Fetching user notifications from Firestore
+ * - Tracking unread notification counts
+ * - Marking notifications as read (individually or all at once)
+ * - Creating new notifications
+ * 
+ * The service uses Firebase Firestore for persistence and Firebase Auth for user authentication.
+ * It implements the ObservableObject protocol to enable SwiftUI views to react to notification changes.
+ * 
+ * Key features:
+ * - Real-time notification updates
+ * - Batch operations for efficiency
+ * - Automatic unread count management
+ * - Type-safe notification creation
+ */
+
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth

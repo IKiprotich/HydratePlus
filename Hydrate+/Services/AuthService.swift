@@ -5,6 +5,25 @@
 //  Created by Ian   on 12/05/2025.
 //
 
+/*
+ AuthService is a crucial component of the Hydrate+ app that handles all authentication-related functionality.
+ 
+ Key responsibilities:
+ - Manages user authentication state using Firebase Authentication
+ - Handles user registration and sign-in processes
+ - Maintains user session state
+ - Stores and retrieves user data from Firestore
+ - Manages user profile information including:
+   * Basic user details (email, fullname)
+   * Hydration tracking data (currentIntake, dailyGoal)
+   * User achievements (streakDays)
+   * Premium status
+   * Profile image
+ 
+ This service acts as the central authentication hub for the app, ensuring secure user management
+ and providing real-time updates about the user's authentication state through @Published properties.
+ */
+
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore

@@ -5,6 +5,24 @@
 //  Created by Ian   on 12/05/2025.
 //
 
+/*
+ * WaterIntakeService.swift
+ * 
+ * This service is a core component of the Hydrate+ app that manages all water intake tracking
+ * and history functionality. It serves as the primary interface between the app and Firebase
+ * for water consumption data.
+ *
+ * Key responsibilities:
+ * - Logs and updates daily water intake amounts
+ * - Maintains water intake history for trend analysis
+ * - Integrates with WaterReminderService to manage hydration reminders
+ * - Tracks progress towards daily water intake goals
+ * - Provides historical water intake data for visualization
+ *
+ * The service uses Firebase Firestore for data persistence and ensures real-time
+ * synchronization of water intake data across devices.
+ */
+
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth

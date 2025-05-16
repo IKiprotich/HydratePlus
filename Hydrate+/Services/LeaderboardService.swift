@@ -5,6 +5,22 @@
 //  Created by Ian   on 24/04/2025.
 //
 
+/*
+ * LeaderboardService.swift
+ * 
+ * This service is a crucial component of Hydrate+ that manages the app's social and gamification features.
+ * It handles the retrieval and management of user rankings based on their water intake achievements.
+ * 
+ * Key responsibilities:
+ * - Fetches top users sorted by their current water intake
+ * - Provides real-time leaderboard data for social engagement
+ * - Integrates with Firebase Firestore for data persistence
+ * - Supports user authentication and data security
+ * 
+ * The leaderboard feature encourages user engagement and healthy competition
+ * by allowing users to compare their hydration progress with others.
+ */
+
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth

@@ -1,3 +1,29 @@
+/*
+ * WaterReminderService.swift
+ * 
+ * This service is a crucial component of the Hydrate+ app that manages water intake reminders
+ * and notifications. It serves several important functions:
+ * 
+ * 1. Notification Management:
+ *    - Handles user notification permissions
+ *    - Schedules hourly reminders to drink water
+ *    - Manages notification content and delivery
+ * 
+ * 2. User Engagement:
+ *    - Provides personalized reminders using the user's first name
+ *    - Includes motivational messages to encourage water intake
+ *    - Tracks progress towards daily water intake goals
+ * 
+ * 3. Firebase Integration:
+ *    - Syncs with Firestore to fetch user's daily goals and current intake
+ *    - Ensures reminders are relevant to user's progress
+ * 
+ * 4. Smart Reminders:
+ *    - Only sends reminders if user hasn't reached their daily goal
+ *    - Calculates remaining water intake needed
+ *    - Automatically stops reminders when daily goal is achieved
+ */
+
 //
 //  WaterReminderService.swift
 //  Hydrate+

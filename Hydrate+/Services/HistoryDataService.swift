@@ -1,9 +1,28 @@
+
 //
 //  HistoryDataService.swift
 //  Hydrate+
 //
 //  Created by Ian   on 19/04/2025.
 //
+
+/*
+ * HistoryDataService.swift
+ * 
+ * This service is a crucial component of Hydrate+ that manages and provides water consumption
+ * history data for different time periods. It serves as the data layer for displaying
+ * historical water intake patterns in the app.
+ * 
+ * Key functionalities:
+ * - Provides water consumption data for daily, weekly, and monthly views
+ * - Generates realistic consumption patterns with time-based variations
+ * - Handles historical items for tracking past water intake
+ * - Supports different time frames (day, week, month) with appropriate data formatting
+ * 
+ * The service uses simulated data generation to create realistic water consumption patterns,
+ * taking into account factors like weekends vs weekdays and time of day variations.
+ */
+
 
 import Foundation
 
