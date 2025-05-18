@@ -1,3 +1,17 @@
+/// RegistrationView.swift
+/// This file contains the main registration interface for the Hydrate+ app.
+/// It provides a complete user registration flow including email/password registration,
+/// social sign-in options, and comprehensive form validation.
+///
+/// Key Features:
+/// - Email and password registration
+/// - Social authentication (Google and Apple)
+/// - Real-time password validation
+/// - Terms and conditions agreement
+/// - Form validation with visual feedback
+/// - Keyboard-aware layout
+/// - Accessibility support
+
 //
 //  RegistrationView.swift
 //  Hydrate+
@@ -7,12 +21,14 @@
 
 import SwiftUI
 
-// MARK: - Authentication Form Protocol
+/// Protocol that defines the validation requirements for authentication forms
+/// Used to ensure consistent form validation across different authentication views
 protocol AuthenticationFormProtocol {
     var formIsValid: Bool { get }
 }
 
-// MARK: - Placeholder SocialSignInButton (Assumed Component)
+/// A reusable button component for social authentication options
+/// Displays a service icon and name in a consistent style
 struct SocialSignInButton: View {
     let imageName: String
     let serviceName: String
@@ -35,11 +51,18 @@ struct SocialSignInButton: View {
     }
 }
 
+/// The main registration view that handles user account creation
+/// Manages the entire registration flow including form input, validation, and submission
 struct RegistrationView: View {
+    // MARK: - State Properties
+    
+    /// Form input fields
     @State private var email = ""
     @State private var fullname = ""
     @State private var password = ""
     @State private var confirmPassword = ""
+    
+    /// UI state management
     @State private var agreeToTerms = false
     @State private var showingPasswordRequirements = false
     @State private var showValidationFeedback = false
@@ -47,6 +70,7 @@ struct RegistrationView: View {
     @State private var isLoading = false
     @State private var showError = false
     
+    /// Environment objects for view dismissal and authentication
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: AuthViewModel
     
@@ -362,7 +386,8 @@ struct RegistrationView: View {
     }
 }
 
-// MARK: - Password Requirements View
+/// A modal view that displays password requirements
+/// Shown when users need guidance on creating a secure password
 struct PasswordRequirementsView: View {
     @Environment(\.dismiss) var dismiss
     
@@ -430,8 +455,15 @@ struct PasswordRequirementsView: View {
     }
 }
 
-// MARK: - Authentication Form Protocol Conformance
+/// Extension that implements the AuthenticationFormProtocol
+/// Provides real-time validation of the registration form
 extension RegistrationView: AuthenticationFormProtocol {
+    /// Validates all form fields to ensure they meet the app's requirements
+    /// Checks for:
+    /// - Valid email format
+    /// - Password length and complexity
+    /// - Password confirmation match
+    /// - Required fields completion
     var formIsValid: Bool {
         return !email.isEmpty &&
                email.contains("@") &&

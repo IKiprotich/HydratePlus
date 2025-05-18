@@ -7,15 +7,35 @@
 
 import SwiftUI
 
-// Placeholder UIHelpers to handle keyboard dismissal
+/// A reusable input field component that provides a consistent and interactive text input experience
+/// throughout the Hydrate+ app. This view supports both regular text input and secure password input
+/// with additional features like password strength indication and visibility toggle.
+///
+/// The component is designed to be highly customizable and provides visual feedback for user interaction,
+/// making it ideal for forms, authentication screens, and any other input scenarios in the app.
 struct InputView: View {
+    /// The text content of the input field
     @Binding var text: String
+    
+    /// The label displayed above the input field
     let Title: String
+    
+    /// The placeholder text shown when the input is empty
     let placeholder: String
+    
+    /// Determines if the input should be treated as a secure field (password)
     var isSecureField: Bool
+    
+    /// Optional SF Symbol name for the icon to be displayed
     var iconName: String? = nil
+    
+    /// Tracks whether the field is currently being edited
     @State private var isEditing = false
+    
+    /// Controls the visibility of the password text in secure fields
     @State private var isSecureTextVisible = false
+    
+    /// Manages the focus state of the input field
     @FocusState private var isFocused: Bool
     
     var body: some View {
@@ -116,7 +136,8 @@ struct InputView: View {
         }
     }
     
-    // Password strength indicator
+    /// Calculates and returns the password strength message based on the input length
+    /// - Returns: A string indicating the password strength level
     private var passwordStrength: String {
         guard isSecureField && !text.isEmpty else { return "" }
         
@@ -129,6 +150,8 @@ struct InputView: View {
         }
     }
     
+    /// Determines the color to display for the password strength indicator
+    /// - Returns: A Color value representing the strength level
     private var passwordStrengthColor: Color {
         guard isSecureField && !text.isEmpty else { return .secondary }
         
@@ -142,6 +165,8 @@ struct InputView: View {
     }
 }
 
+/// Preview provider for the InputView component
+/// Shows examples of both regular text input and password input configurations
 #Preview {
     VStack(spacing: 20) {
         InputView(

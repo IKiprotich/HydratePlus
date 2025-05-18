@@ -5,12 +5,26 @@
 //  Created by Ian on 09/04/2025.
 //
 
+/// LoginView.swift
+/// This view handles the user authentication flow, providing multiple sign-in options
+/// including email/password and social authentication methods (Google and Apple).
+/// The view is designed with a modern, animated UI that provides a seamless login experience.
+
 import SwiftUI
 
+/// Main login view that handles user authentication
+/// - Manages email/password authentication
+/// - Provides social sign-in options (Google and Apple)
+/// - Includes "Remember Me" functionality
+/// - Offers password recovery option
+/// - Links to registration for new users
 struct LoginView: View {
+    // MARK: - Properties
+    /// State variables for form inputs and user preferences
     @State private var email = ""
     @State private var password = ""
     @State private var rememberMe = false
+    /// Environment object that handles authentication logic
     @EnvironmentObject var viewModel: AuthViewModel
     
     var body: some View {
@@ -163,7 +177,9 @@ struct LoginView: View {
         }
     }
     
-    // Email Login Form
+    // MARK: - Email Login Form
+    /// Creates the email and password input fields with validation
+    /// - Returns: A VStack containing styled input fields for email and password
     private var emailLoginForm: some View {
         VStack(spacing: 16) {
             InputView(
@@ -187,6 +203,9 @@ struct LoginView: View {
 }
 
 // MARK: - Logo View
+/// Animated logo component that provides visual branding
+/// - Displays the app logo with a pulsing animation effect
+/// - Uses multiple layered circles for a modern, dynamic appearance
 struct LogoView: View {
     @State private var isAnimating = false
     
@@ -221,7 +240,15 @@ struct LogoView: View {
 }
 
 // MARK: - Authentication Form Protocol
+/// Protocol conformance for form validation
+/// - Validates email format and password length
+/// - Controls the sign-in button's enabled state
 extension LoginView: AuthenticationFormProtocol {
+    /// Validates the login form inputs
+    /// - Returns: Boolean indicating if the form is valid
+    /// - Requirements:
+    ///   - Email must not be empty and contain '@'
+    ///   - Password must not be empty and be longer than 5 characters
     var formIsValid: Bool {
         return !email.isEmpty &&
                email.contains("@") &&
