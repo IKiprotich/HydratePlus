@@ -5,9 +5,26 @@
 //  Created by Ian   on 21/04/2025.
 //
 
+/// Hydrate+ Account Settings Module
+///
+/// This module provides a comprehensive account management interface for the Hydrate+ app.
+/// It allows users to manage their account details, preferences, subscription status,
+/// security settings, and perform account actions.
+///
+/// The module is structured into several key components:
+/// - AccountDetailsSection: Displays user's basic information
+/// - PreferencesSection: Handles units and language preferences
+/// - SubscriptionSection: Manages premium subscription status
+/// - SecuritySection: Handles security-related features
+/// - AccountActionsSection: Provides account management actions
+///
+/// The interface uses a consistent blue gradient theme defined in BlueGradientScheme
+/// for visual coherence across the app.
+
 import SwiftUI
 
-// Color scheme for consistent blue gradient styling
+/// Defines the color scheme used throughout the account settings interface
+/// This ensures consistent visual styling across the app
 struct BlueGradientScheme {
     static let backgroundStart = Color.blue.opacity(0.1)
     static let backgroundEnd = Color.blue.opacity(0.3)
@@ -17,7 +34,11 @@ struct BlueGradientScheme {
     static let shadow = Color.black.opacity(0.05)
 }
 
-// Main Account Settings View
+/// Main Account Settings View
+///
+/// This is the primary container view that orchestrates all account-related functionality.
+/// It manages the overall layout and navigation of the account settings interface,
+/// including the ability to dismiss the view and handle user preferences.
 struct AccountSettingsView: View {
     @ObservedObject var userVM: UserViewModel
     @Environment(\.dismiss) private var dismiss
@@ -87,7 +108,15 @@ struct AccountSettingsView: View {
     }
 }
 
-// Account Details Section
+/// Account Details Section
+///
+/// Displays the user's core account information including:
+/// - Email address
+/// - Full name
+/// - Account creation date
+///
+/// This section provides users with a quick overview of their account information
+/// and serves as a reference point for their account details.
 struct AccountDetailsSection: View {
     @ObservedObject var userVM: UserViewModel
     
@@ -100,7 +129,14 @@ struct AccountDetailsSection: View {
     }
 }
 
-// Preferences Section
+/// Preferences Section
+///
+/// Manages user preferences for the app, including:
+/// - Measurement units (Metric/Imperial)
+/// - Language selection
+///
+/// Changes to preferences are immediately synchronized with the user's account
+/// through the UserViewModel.
 struct PreferencesSection: View {
     @Binding var units: String
     @Binding var language: String
@@ -120,7 +156,14 @@ struct PreferencesSection: View {
     }
 }
 
-// Subscription Section
+/// Subscription Section
+///
+/// Handles the user's subscription status and premium features:
+/// - Displays current subscription status (Free/Premium)
+/// - Shows subscription renewal date for premium users
+/// - Provides upgrade option for free users
+///
+/// This section is crucial for the app's monetization strategy and premium feature access.
 struct SubscriptionSection: View {
     @ObservedObject var userVM: UserViewModel
     
@@ -168,7 +211,14 @@ struct SubscriptionSection: View {
     }
 }
 
-// Security Section
+/// Security Section
+///
+/// Manages account security features:
+/// - Password change functionality
+/// - Two-factor authentication settings
+///
+/// This section ensures users can maintain their account security
+/// and protect their personal data.
 struct SecuritySection: View {
     @ObservedObject var userVM: UserViewModel
     @Binding var showingPasswordChange: Bool
@@ -193,7 +243,14 @@ struct SecuritySection: View {
     }
 }
 
-// Account Actions Section
+/// Account Actions Section
+///
+/// Provides critical account management actions:
+/// - Log out from all devices
+/// - Account deletion
+///
+/// These actions require careful handling and confirmation to prevent
+/// accidental data loss or security issues.
 struct AccountActionsSection: View {
     @ObservedObject var userVM: UserViewModel
     @Binding var showingDeleteConfirmation: Bool

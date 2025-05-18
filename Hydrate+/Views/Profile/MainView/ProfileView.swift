@@ -7,17 +7,32 @@
 
 import SwiftUI
 
+/// ProfileView is the main profile screen of the Hydrate+ app that displays user information
+/// and provides access to various settings and features. It's organized into several sections:
+/// - Profile header with user information
+/// - Settings section for account and app preferences
+/// - App information section
+/// - Account management section
 struct ProfileView: View {
+    /// Environment object for handling authentication state and operations
     @EnvironmentObject var viewModel: AuthViewModel
+    
+    /// State object for managing user data and operations
     @StateObject private var userVM = UserViewModel()
+    
+    /// State variable to control the edit profile sheet presentation
     @State private var showingEditProfile = false
+    
+    /// State variable to store any error messages that occur during profile loading
     @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-// Profile Header
+                    // MARK: - Profile Header Section
+                    /// Displays the user's profile information including their photo and basic details
+                    /// Includes an edit button that opens the EditProfileView sheet
                     if let user = userVM.user {
                         ProfileHeaderView(user: user)
                             .overlay(
@@ -42,9 +57,11 @@ struct ProfileView: View {
                             .padding(.vertical, 50)
                     }
 
-
-
-// Settings Section
+                    // MARK: - Settings Section
+                    /// Contains user preferences and settings including:
+                    /// - Account settings for managing user details
+                    /// - Daily water intake goal configuration
+                    /// - Notification preferences
                     ProfileMenuSection(title: "Settings", icon: "gearshape.fill") {
                         ProfileMenuItem(
                             icon: "person.fill",
@@ -78,7 +95,10 @@ struct ProfileView: View {
                         )
                     }
 
-// App Section
+                    // MARK: - App Information Section
+                    /// Provides access to app-related information and support:
+                    /// - Help and support resources
+                    /// - About section with app information
                     ProfileMenuSection(title: "App", icon: "info.circle.fill") {
                         ProfileMenuItem(
                             icon: "questionmark.circle.fill",
@@ -99,7 +119,9 @@ struct ProfileView: View {
                         }
                     }
 
-// Sign Out
+                    // MARK: - Account Management Section
+                    /// Handles account-related actions:
+                    /// - Sign out functionality
                     ProfileMenuSection(title: "Account", icon: "person.crop.circle.fill") {
                         ProfileMenuButtonItem(
                             icon: "arrow.right.square.fill",
@@ -113,6 +135,8 @@ struct ProfileView: View {
                 }
                 .padding(.bottom, 20)
             }
+            // MARK: - View Styling
+            /// Applies a subtle gradient background to the entire view
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [.white, Color.blue.opacity(0.2)]),
@@ -123,6 +147,8 @@ struct ProfileView: View {
             )
             .navigationTitle("Profile")
             .animation(.easeInOut, value: userVM.user)
+            // MARK: - Data Loading
+            /// Fetches user data when the view appears
             .onAppear {
                 Task {
                     do {
