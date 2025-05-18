@@ -9,7 +9,10 @@ import SwiftUI
 import Firebase
 import FirebaseAuth
 
+/// A view that displays a leaderboard of users ranked by their water consumption.
+/// This view shows users' rankings, their total water consumption, and special trophies for top performers.
 struct LeaderboardView: View {
+    /// ViewModel that manages the leaderboard data and business logic
     @StateObject private var viewModel = LeaderboardViewModel()
     
     var body: some View {
@@ -26,10 +29,13 @@ struct LeaderboardView: View {
                 )
                 .ignoresSafeArea()
                 
+                // Loading state
                 if viewModel.isLoading {
                     ProgressView()
                         .scaleEffect(1.5)
-                } else if let error = viewModel.errorMessage {
+                }
+                // Error state with retry option
+                else if let error = viewModel.errorMessage {
                     VStack(spacing: 16) {
                         Image(systemName: "exclamationmark.triangle")
                             .font(.largeTitle)
@@ -45,7 +51,9 @@ struct LeaderboardView: View {
                         }
                         .buttonStyle(.bordered)
                     }
-                } else {
+                }
+                // Main leaderboard content
+                else {
                     ScrollView {
                         VStack(spacing: 16) {
                             ForEach(Array(viewModel.entries.enumerated()), id: \.element.id) { index, entry in
@@ -64,26 +72,30 @@ struct LeaderboardView: View {
     }
 }
 
+/// A row component that displays individual user entries in the leaderboard.
+/// Each row shows the user's rank, name, total water consumption, and special trophy for top 3 positions.
 struct LeaderboardRow: View {
+    /// The position of the user in the leaderboard (1-based index)
     let rank: Int
+    /// The leaderboard entry containing user data
     let entry: LeaderboardEntry
     
     var body: some View {
         HStack(spacing: 16) {
-            // Rank
+            // Rank number display
             Text("\(rank)")
                 .font(.headline)
                 .foregroundColor(.secondary)
                 .frame(width: 30)
             
-            // Trophy icon for top 3
+            // Trophy icon for top 3 positions
             if rank <= 3 {
                 Image(systemName: "trophy.fill")
                     .foregroundColor(rankColor)
                     .font(.title2)
             }
             
-            // User info
+            // User information display
             VStack(alignment: .leading, spacing: 4) {
                 Text(entry.name)
                     .font(.headline)
@@ -102,6 +114,7 @@ struct LeaderboardRow: View {
         )
     }
     
+    /// Returns the appropriate color for the trophy based on the user's rank
     private var rankColor: Color {
         switch rank {
         case 1: return Color(red: 1.0, green: 0.84, blue: 0.0) // Gold
