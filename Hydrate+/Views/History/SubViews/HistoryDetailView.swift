@@ -7,12 +7,21 @@
 
 import SwiftUI
 
+/// A view that displays detailed information about water intake for a specific day.
+/// This view shows a summary of the day's water consumption, progress towards the daily goal,
+/// and a chronological list of all water intake logs for that day.
 struct HistoryDetailView: View {
+    /// The date for which the history is being displayed
     let date: Date
+    /// Array of water intake logs for the selected date
     let logs: [WaterLog]
+    /// Total amount of water consumed for the day in milliliters
     let totalAmount: Double
+    /// Daily water intake goal in milliliters
     let dailyGoal: Double
     
+    /// Calculates the progress percentage towards the daily goal
+    /// Returns a value between 0 and 100
     var progress: Int {
         Int(min(totalAmount / dailyGoal * 100, 100))
     }
@@ -41,6 +50,12 @@ struct HistoryDetailView: View {
     
     // MARK: - Extracted Views
     
+    /// A card view that displays the summary of the day's water intake
+    /// Includes:
+    /// - The date
+    /// - A circular progress indicator showing goal completion
+    /// - Total amount consumed
+    /// - Key statistics (goal amount and number of intake sessions)
     private var summaryCard: some View {
         VStack(spacing: 16) {
             Text(date, style: .date)
@@ -90,6 +105,8 @@ struct HistoryDetailView: View {
         .padding(.horizontal)
     }
     
+    /// A section that displays all water intake logs for the day
+    /// Each log entry shows the time and amount of water consumed
     private var logsListSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Water Logs")

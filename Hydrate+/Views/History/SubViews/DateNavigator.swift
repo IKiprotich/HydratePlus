@@ -7,14 +7,29 @@
 
 import SwiftUI
 
+/// A reusable navigation component that allows users to move between different time periods
+/// in the app's history view. This component is used to navigate through daily, weekly,
+/// or monthly views of hydration data.
+///
+/// The DateNavigator provides a consistent UI pattern for temporal navigation across the app,
+/// featuring previous/next buttons and a formatted date display that adapts based on the
+/// selected time frame.
 struct DateNavigator: View {
+    /// The time frame being displayed (e.g., day, week, month)
     let timeFrame: TimeFrame
+    
+    /// The currently selected date
     let date: Date
+    
+    /// Callback function triggered when the user wants to view the previous time period
     let onPrevious: () -> Void
+    
+    /// Callback function triggered when the user wants to view the next time period
     let onNext: () -> Void
     
     var body: some View {
         HStack {
+            // Previous period button
             Button {
                 onPrevious()
             } label: {
@@ -28,12 +43,14 @@ struct DateNavigator: View {
             
             Spacer()
             
+            // Current time period display
             Text(DateFormatters.formatTimeFrame(date: date, timeFrame: timeFrame))
                 .font(.headline)
                 .foregroundStyle(Color.blue)
             
             Spacer()
             
+            // Next period button
             Button {
                 onNext()
             } label: {
@@ -57,5 +74,4 @@ struct DateNavigator: View {
         onNext: {}
     )
     .padding()
-    
 }
