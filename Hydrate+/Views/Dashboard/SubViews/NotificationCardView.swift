@@ -7,9 +7,20 @@
 
 import SwiftUI
 
+/// A SwiftUI view that displays a card containing user notifications for the Hydrate+ app.
+/// This view manages the display and interaction with notifications, including marking them as read
+/// and viewing notification details.
 struct NotificationCardView: View {
+    /// The notification service that manages the app's notifications.
+    /// This service is observed for changes to update the UI automatically.
     @ObservedObject var notificationService: NotificationService
+    
+    /// The currently selected notification for detailed view.
+    /// This is set when a user taps on a notification.
     @State private var selectedNotification: HydrateNotification?
+    
+    /// Controls the presentation of the notification detail sheet.
+    /// When true, the detail view is presented as a sheet.
     @State private var showNotificationDetail = false
     
     var body: some View {
@@ -82,7 +93,13 @@ struct NotificationCardView: View {
     }
 }
 
+/// A SwiftUI view that represents a single notification item within the notification card.
+/// This component displays the notification's icon, title, message, timestamp, and read status.
+/// It's designed to be used within a list of notifications in the NotificationCardView.
 struct NotificationItem: View {
+    /// The notification data to be displayed in this item.
+    /// Contains all the information needed to render the notification including
+    /// type, title, message, timestamp, and read status.
     let notification: HydrateNotification
     
     var body: some View {
@@ -115,8 +132,16 @@ struct NotificationItem: View {
     }
 }
 
+/// A SwiftUI view that displays the detailed view of a single notification.
+/// This view appears as a sheet when a notification is tapped, showing the full notification
+/// content including a larger icon, title, message, and formatted timestamp.
+/// It includes a dismiss button to close the detail view.
 struct NotificationDetailView: View {
+    /// The notification data to be displayed in the detail view.
+    /// Contains all the information needed to render the full notification details.
     let notification: HydrateNotification
+    
+    /// Environment value used to dismiss the detail view sheet.
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {

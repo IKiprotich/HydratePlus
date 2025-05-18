@@ -5,67 +5,90 @@
 //  Created by Ian   on 11/04/2025.
 //
 
+/// AddWaterView is a SwiftUI view that provides an interface for users to add water intake to their daily tracking.
+/// This view is presented as a modal sheet and allows users to either select from preset amounts or enter a custom amount.
+///
+/// Key Features:
+/// - Preset water amounts (100ml, 250ml, 330ml, 500ml, 750ml, 1000ml)
+/// - Custom amount input option
+/// - Real-time validation of input
+/// - Smooth transitions between preset and custom modes
+///
+/// The view integrates with WaterViewModel to persist the water intake data.
 import SwiftUI
 
 struct AddWaterView: View {
+    // MARK: - Environment & Properties
+    
+    /// Environment variable to handle view dismissal
     @Environment(\.dismiss) private var dismiss
+    
+    /// ViewModel that handles water intake data and business logic
     @ObservedObject var viewModel: WaterViewModel
     
+    /// State variables to manage the view's UI state
     @State private var selectedAmount: Double = 250
     @State private var customAmount: String = ""
     @State private var isCustomAmount: Bool = false
     
+    /// Predefined water amounts available for quick selection
     private let presetAmounts: [Double] = [100, 250, 330, 500, 750, 1000]
     
-    // Computed properties to simplify complex expressions
+    // MARK: - Computed Properties
+    
+    /// Calculates the final amount to be added based on whether custom or preset amount is selected
     private var amountToAdd: Double {
         isCustomAmount ? (Double(customAmount) ?? 0) : selectedAmount
     }
     
+    /// Determines if the add button should be disabled based on input validation
     private var isAddButtonDisabled: Bool {
         isCustomAmount && (Double(customAmount) ?? 0) <= 0
     }
     
+    /// Controls the opacity of the add button based on its disabled state
     private var addButtonOpacity: Double {
         isAddButtonDisabled ? 0.5 : 1.0
     }
     
+    /// Generates the text for the add button showing the current amount
     private var addButtonText: String {
         "Add \(Int(amountToAdd))ml"
     }
     
+    // MARK: - Body
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                // Title
+                // Title section
                 Text("Add Water")
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.deepBlue)
                 
-                // Amount selection
+                // Main content section containing amount selection
                 VStack(spacing: 16) {
-                    // Preset amounts
+                    // Shows either preset amounts or custom input based on mode
                     if !isCustomAmount {
                         presetAmountsView
                     }
                     
-                    // Custom amount
                     if isCustomAmount {
                         customAmountView
                     }
                     
-                    // Toggle between preset and custom
+                    // Mode toggle button
                     toggleButton
                 }
                 
                 Spacer()
                 
-                // Add button - simplified by using computed properties
+                // Add button section
                 Button {
                     if amountToAdd > 0 {
                         Task {
-                                await viewModel.addWater(amount: amountToAdd)
-                                }
+                            await viewModel.addWater(amount: amountToAdd)
+                        }
                     }
                     dismiss()
                 } label: {
@@ -79,7 +102,6 @@ struct AddWaterView: View {
                 }
                 .disabled(isAddButtonDisabled)
                 .opacity(addButtonOpacity)
-
             }
             .padding(24)
             .toolbar {
@@ -98,8 +120,9 @@ struct AddWaterView: View {
         .presentationDragIndicator(.visible)
     }
     
-    // MARK: - Extracted Views
+    // MARK: - Subviews
     
+    /// Displays a grid of preset water amounts for quick selection
     private var presetAmountsView: some View {
         VStack(spacing: 12) {
             Text("Select Amount")
@@ -115,6 +138,7 @@ struct AddWaterView: View {
         }
     }
     
+    /// Creates a button for each preset amount with appropriate styling
     private func presetAmountButton(_ amount: Double) -> some View {
         Button {
             selectedAmount = amount
@@ -129,6 +153,7 @@ struct AddWaterView: View {
         }
     }
     
+    /// Provides a text field for entering custom water amounts
     private var customAmountView: some View {
         VStack(spacing: 12) {
             Text("Enter Custom Amount")
@@ -145,6 +170,7 @@ struct AddWaterView: View {
         }
     }
     
+    /// Toggle button to switch between preset and custom amount modes
     private var toggleButton: some View {
         Button {
             isCustomAmount.toggle()
