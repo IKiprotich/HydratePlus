@@ -6,6 +6,9 @@
 //
 //
 
+// This file contains date formatting utilities for displaying dates in different time frames
+// (day, week, month) throughout the Hydrate+ app.
+
 import Foundation
 
 struct DateFormatters {

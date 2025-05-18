@@ -5,12 +5,35 @@
 //  Created by Ian   on 12/05/2025.
 //
 
+/*
+ * WaterIntakeService.swift
+ * 
+ * This service is a core component of the Hydrate+ app that manages all water intake tracking
+ * and history functionality. It serves as the primary interface between the app and Firebase
+ * for water consumption data.
+ *
+ * Key responsibilities:
+ * - Logs and updates daily water intake amounts
+ * - Maintains water intake history for trend analysis
+ * - Integrates with WaterReminderService to manage hydration reminders
+ * - Tracks progress towards daily water intake goals
+ * - Provides historical water intake data for visualization
+ *
+ * The service uses Firebase Firestore for data persistence and ensures real-time
+ * synchronization of water intake data across devices.
+ */
+
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
 class WaterIntakeService: ObservableObject {
     private let db = Firestore.firestore()
+    private let reminderService: WaterReminderService
+    
+    init(reminderService: WaterReminderService = WaterReminderService()) {
+        self.reminderService = reminderService
+    }
     
     func logWaterIntake(amount: Double) async throws {
         guard let userId = Auth.auth().currentUser?.uid else {
@@ -24,10 +47,11 @@ class WaterIntakeService: ObservableObject {
         // Gets current intake for today
         let currentDoc = try await intakeRef.getDocument()
         let currentIntake = currentDoc.exists ? (currentDoc.data()?["amount"] as? Double ?? 0) : 0
+        let newIntake = currentIntake + amount
         
         // Updates today's intake
         try await intakeRef.setData([
-            "amount": currentIntake + amount,
+            "amount": newIntake,
             "lastUpdated": FieldValue.serverTimestamp(),
             "date": today
         ], merge: true)
@@ -36,6 +60,13 @@ class WaterIntakeService: ObservableObject {
         try await db.collection("users").document(userId).updateData([
             "currentIntake": FieldValue.increment(amount)
         ])
+        
+        // Check if user has reached their daily goal
+        let userDoc = try await db.collection("users").document(userId).getDocument()
+        if let dailyGoal = userDoc.data()?["dailyGoal"] as? Double,
+           newIntake >= dailyGoal {
+            reminderService.cancelRemindersForToday()
+        }
     }
     
     func getWaterIntakeHistory(days: Int = 7) async throws -> [(date: Date, amount: Double)] {

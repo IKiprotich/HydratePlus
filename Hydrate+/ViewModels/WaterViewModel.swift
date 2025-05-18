@@ -1,9 +1,30 @@
+
 //
 //  WaterViewModel.swift
 //  Hydrate+
 //
 //  Created by Ian on 21/04/2025.
 //
+
+/*
+ * WaterViewModel.swift
+ * 
+ * This is a crucial ViewModel in the Hydrate+ app that manages all water consumption tracking
+ * and related functionality. It serves as the central data management layer between the UI
+ * and Firebase backend.
+ * 
+ * Key responsibilities:
+ * - Tracks daily water intake and maintains consumption history
+ * - Manages user streaks and daily goals
+ * - Handles real-time synchronization with Firebase
+ * - Provides data for charts and history views
+ * - Calculates daily averages and consumption patterns
+ * - Manages automatic daily intake resets
+ * 
+ * The ViewModel uses @MainActor to ensure all UI updates happen on the main thread
+ * and implements ObservableObject to enable SwiftUI view updates.
+ */
+
 
 import Foundation
 import FirebaseFirestore

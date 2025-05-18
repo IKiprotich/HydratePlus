@@ -1,9 +1,27 @@
+
 //
 //  UserViewModel.swift
 //  Hydrate+
 //
 //  Created by Ian   on 21/04/2025.
 //
+
+
+/*
+ * UserViewModel.swift
+ * 
+ * This file serves as the core user management system for the Hydrate+ app. It handles:
+ * - User profile data management and synchronization with Firebase
+ * - Real-time user data updates using Firestore listeners
+ * - User preferences management (daily goals, notifications, units, language)
+ * - Account management operations (password changes, account deletion)
+ * 
+ * The ViewModel follows the MVVM pattern and uses @MainActor to ensure all UI updates
+ * happen on the main thread. It maintains a single source of truth for user data
+ * throughout the application and provides a clean interface for views to interact
+ * with user-related functionality.
+ */
+
 
 import Foundation
 import Firebase

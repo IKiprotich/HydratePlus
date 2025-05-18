@@ -5,6 +5,21 @@
 //  Created by Ian   on 07/05/2025.
 //
 
+/*
+ * LeaderboardViewModel
+ * -------------------
+ * This ViewModel is a crucial component of Hydrate+ that manages the real-time leaderboard functionality.
+ * It handles:
+ * - Real-time synchronization of user water intake data from Firestore
+ * - Sorting users by their water consumption
+ * - Providing a live-updating list of leaderboard entries
+ * - Error handling and loading states for the UI
+ * 
+ * The ViewModel uses Firebase's real-time listeners to ensure the leaderboard
+ * stays current without requiring manual refreshes, while also providing
+ * a manual refresh option for users.
+ */
+
 import Foundation
 import FirebaseFirestore
 import Combine

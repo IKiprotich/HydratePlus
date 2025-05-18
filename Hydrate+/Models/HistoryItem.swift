@@ -5,6 +5,11 @@
 //  Created by Ian   on 19/04/2025.
 //
 
+/// Represents a daily water intake record in the Hydrate+ app.
+/// This model stores the total amount of water consumed for a specific date,
+/// tracks progress towards the daily goal, and provides formatted strings
+/// for displaying the date and amount in the UI.
+
 import Foundation
 
 struct HistoryItem: Identifiable {

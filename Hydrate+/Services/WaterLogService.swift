@@ -5,6 +5,29 @@
 //  Created by Ian   on 21/04/2025.
 //
 
+/*
+ WaterLogService is a crucial service layer component that manages all water intake logging operations
+ in the Hydrate+ app. It handles the following key responsibilities:
+ 
+ 1. Water Log Management:
+    - Fetches user's water intake history
+    - Records new water intake entries
+    - Maintains chronological order of logs
+ 
+ 2. Daily Intake Tracking:
+    - Updates user's current daily intake
+    - Resets daily intake at appropriate intervals
+    - Maintains total intake history
+ 
+ 3. Firebase Integration:
+    - Manages all Firestore database operations
+    - Handles batch writes for atomic operations
+    - Maintains data consistency across collections
+ 
+ This service is essential for the core functionality of Hydrate+ as it ensures
+ accurate tracking and persistence of user's water consumption data.
+ */
+
 import FirebaseFirestore
 
 struct WaterLogService {
